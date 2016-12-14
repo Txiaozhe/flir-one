@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">FLIR ONE Example Application</string>
+    <string name="change_view">Change View \u21EA</string>
+    <string name="change_view_retract">Change View \u21B2</string>
+    <string name="connectSim">Toggle Sim</string>
+    <string name="performTuning">Tune</string>
+    <string name="rotate_on">\u21BA</string>
+    <string name="rotate_off">\u21BB</string>
+    <string name="battery_label">Batt:</string>
+    <string name="txtTuning">Tuning...</string>
+    <string name="startNetStream">Stream</string>
+    <string name="stopNetStream">Disconnect</string>
+
+    <string name="app_name_cn">FLIR ONE 热成像仪</string>
+    <string name="change_view_cn">切换视图 \u21EA</string>
+    <string name="change_view_retract_cn">切换视图 \u21B2</string>
+    <string name="connectSim_cn">切换 Sim</string>
+    <string name="performTuning_cn">Tune</string>
+    <string name="rotate_on_cn">\u21BA</string>
+    <string name="rotate_off_cn">\u21BB</string>
+    <string name="battery_label_cn">Batt:</string>
+    <string name="txtTuning_cn">正在开启...</string>
+    <string name="startNetStream_cn">Stream</string>
+    <string name="stopNetStream_cn">断开连接</string>
+
+    <string name="Please_Connect_FLIR_One" >请连接一个FLIR One设备</string>
+</resources>
