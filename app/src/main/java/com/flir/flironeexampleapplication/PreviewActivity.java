@@ -1,5 +1,8 @@
 package com.flir.flironeexampleapplication;
 
+//主界面
+
+import com.flir.flironeexampleapplication.util.GridAdapter;
 import com.flir.flironeexampleapplication.util.SystemUiHider;
 
 import android.annotation.TargetApi;
@@ -27,7 +30,9 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -508,7 +513,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             return;
         }
         ListView paletteListView = (ListView)findViewById(R.id.paletteListView);
-        ListView imageTypeListView = (ListView)findViewById(R.id.imageTypeListView);
         if (((ToggleButton)v).isChecked()){
             // only show palette list if selected image type is colorized
             paletteListView.setVisibility(View.INVISIBLE);
@@ -518,7 +522,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     break;
                 }
             }
-            imageTypeListView.setVisibility(View.VISIBLE);
             findViewById(R.id.imageTypeListContainer).setVisibility(View.VISIBLE);
         }else{
             findViewById(R.id.imageTypeListContainer).setVisibility(View.GONE);
@@ -628,9 +631,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         setContentView(R.layout.activity_preview);
 
+        //获取三块视图
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
         final View controlsViewTop = findViewById(R.id.fullscreen_content_controls_top);
         final View contentView = findViewById(R.id.fullscreen_content);
@@ -646,6 +649,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         }
         String[] imageTypeNameValues = new String[imageTypeNames.size()];
+        Log.i("imageTypeNameValues", imageTypeNames.size() + "iii");
         for (Map.Entry<Integer, String> mapEntry : imageTypeNames.entrySet()) {
             int index = mapEntry.getKey();
             imageTypeNameValues[index] = mapEntry.getValue();
@@ -654,26 +658,28 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         RenderedImage.ImageType defaultImageType = RenderedImage.ImageType.BlendedMSXRGBA8888Image;
         frameProcessor = new FrameProcessor(this, this, EnumSet.of(defaultImageType, RenderedImage.ImageType.ThermalRadiometricKelvinImage));
 
-        ListView imageTypeListView = ((ListView)findViewById(R.id.imageTypeListView));
-        imageTypeListView.setAdapter(new ArrayAdapter<>(this,R.layout.emptytextview,imageTypeNameValues));
-        imageTypeListView.setSelection(defaultImageType.ordinal());
-        imageTypeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        String[] tag = {"aaa", "aaa", "aaa", "aaa", "aaa", "aaa", "aaa", "aaa", "aaa"};
+        String[] tags = new String[RenderedImage.Palette.values().length];// = RenderedImage.Palette.values();
+
+        for(int i = 0; i < RenderedImage.Palette.values().length; i++) {
+            tags[i] =  RenderedImage.Palette.values()[i].toString();
+        }
+
+        //滤镜
+        GridView paletteGridView = (GridView) this.findViewById(R.id.paletteGridView);
+        paletteGridView.setAdapter(new GridAdapter(this, tag, tags));
+        paletteGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (frameProcessor != null) {
-                    RenderedImage.ImageType imageType = RenderedImage.ImageType.values()[position];
-                    frameProcessor.setImageTypes(EnumSet.of(imageType, RenderedImage.ImageType.ThermalRadiometricKelvinImage));
-                    if (imageType.isColorized()){
-                        findViewById(R.id.paletteListView).setVisibility(View.VISIBLE);
-                    }else{
-                        findViewById(R.id.paletteListView).setVisibility(View.INVISIBLE);
-                    }
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                if (frameProcessor != null){
+                    frameProcessor.setImagePalette(RenderedImage.Palette.values()[position]);
                 }
             }
         });
-        imageTypeListView.setDivider(null);
 
-        // Palette List View Setup
+        Log.i("RenderedImage2221212", RenderedImage.Palette.values()[0].toString());
+        /// 滤镜列表
         ListView paletteListView = ((ListView)findViewById(R.id.paletteListView));
         paletteListView.setDivider(null);
         paletteListView.setAdapter(new ArrayAdapter<>(this, R.layout.emptytextview, RenderedImage.Palette.values()));

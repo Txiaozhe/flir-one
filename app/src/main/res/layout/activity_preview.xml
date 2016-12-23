@@ -1,49 +1,57 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:background="@android:color/background_dark"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/topView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/background_dark"
+    android:keepScreenOn="true"
     android:orientation="vertical"
-    tools:context=".PreviewActivity" android:keepScreenOn="true" android:id="@+id/topView"
-    android:touchscreenBlocksFocus="false">
-
-
+    android:touchscreenBlocksFocus="false"
+    tools:context=".PreviewActivity">
 
 
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
     <ImageView
+        android:id="@+id/imageView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/imageView"
         android:layout_gravity="center_horizontal|top"
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:scaleType="fitCenter" />
 
-    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
-        android:fitsSystemWindows="true"
-        android:id="@+id/fullscreen_content">
+    <FrameLayout
+        android:id="@+id/fullscreen_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
+
         <LinearLayout
-            android:id="@+id/fullscreen_content_controls_top" style="@android:style/ButtonBar"
+            android:id="@+id/fullscreen_content_controls_top"
+            style="@android:style/ButtonBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal" android:orientation="horizontal"
-            tools:ignore="UselessParent"
-            android:background="@color/black_overlay">
+            android:layout_gravity="top|center_horizontal"
+            android:background="@color/black_overlay"
+            android:orientation="horizontal"
+            tools:ignore="UselessParent">
+
             <TextView
+                android:id="@+id/batteryLabelTextView"
+                style="?actionMenuTextAppearance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="@string/battery_label_cn"
-                android:id="@+id/batteryLabelTextView"
+                android:layout_gravity="left|center_vertical"
                 android:layout_margin="8dp"
                 android:layout_weight="0"
-                android:layout_gravity="left|center_vertical"
-                style="?actionMenuTextAppearance"/>
+                android:text="@string/battery_label_cn"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <ImageView
+                android:id="@+id/batteryChargeIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/batteryChargeIndicator"
                 android:layout_gravity="left|center_vertical"
                 android:layout_weight="0"
                 android:src="@android:drawable/ic_lock_idle_charging"
@@ -51,174 +59,183 @@
                 android:visibility="gone" />
 
             <TextView
+                android:id="@+id/batteryLevelTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:id="@+id/batteryLevelTextView"
-                android:layout_weight="0.48"
                 android:layout_gravity="left|center_vertical"
-                android:text="--" />
+                android:layout_weight="0.48"
+                android:text="--"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <ToggleButton
+                android:id="@+id/chargeCableToggle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cable"
-                android:id="@+id/chargeCableToggle"
                 android:layout_weight="0.10"
                 android:checked="false"
-                android:visibility="invisible"
-                android:onClick="onSimulatedChargeCableToggleClicked" />
+                android:onClick="onSimulatedChargeCableToggleClicked"
+                android:text="Cable"
+                android:visibility="invisible" />
 
             <ToggleButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:id="@+id/streamButton"
                 style="?metaButtonBarButtonStyle"
-                android:textOff="@string/startNetStream"
-                android:textOn="@string/stopNetStream"
-                android:onClick="onNetStreamClicked"/>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onNetStreamClicked"
+                android:textOff="@string/startNetStream_cn"
+                android:textOn="@string/stopNetStream_cn" />
 
             <Button
-                android:layout_width="51dp" style="?metaButtonBarButtonStyle"
-                android:layout_height="wrap_content"
-                android:text="@string/performTuning_cn"
                 android:id="@+id/tuneButton"
-                android:onClick="onTuneClicked" />
+                style="?metaButtonBarButtonStyle"
+                android:layout_width="51dp"
+                android:layout_height="wrap_content"
+                android:onClick="onTuneClicked"
+                android:text="@string/performTuning_cn" />
 
             <ToggleButton
+                android:id="@+id/switch_rotate"
+                style="?metaButtonBarButtonStyle"
                 android:layout_width="47dp"
                 android:layout_height="wrap_content"
-                android:text="@string/rotate_on_cn"
-                android:id="@+id/switch_rotate"
-                android:onClick="onRotateClicked"
                 android:layout_gravity="right"
+                android:onClick="onRotateClicked"
+                android:text="@string/rotate_on_cn"
                 android:textOff="@string/rotate_off_cn"
-                android:textOn="@string/rotate_on_cn"
-                style="?metaButtonBarButtonStyle" />
+                android:textOn="@string/rotate_on_cn" />
 
 
         </LinearLayout>
-        <FrameLayout android:id="@+id/fullscreen_content_controls" style="?metaButtonBarStyle"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
+
+        <FrameLayout
+            android:id="@+id/fullscreen_content_controls"
+            style="?metaButtonBarStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
             android:background="@color/black_overlay"
-            tools:ignore="UselessParent"
             android:columnCount="3"
-            android:rowCount="2">
+            android:rowCount="2"
+            tools:ignore="UselessParent">
+
             <LinearLayout
-                android:orientation="horizontal"
+                android:id="@+id/imageTypeListContainer"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal|bottom"
                 android:baselineAligned="false"
-                android:id="@+id/imageTypeListContainer"
                 android:focusableInTouchMode="false"
+                android:orientation="horizontal"
                 android:visibility="gone">
 
                 <ListView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/imageTypeListView"
-                    android:layout_gravity="center_vertical|bottom|left"
-                    android:layout_marginBottom="60dp"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:alpha="0.9"
-                    android:layout_weight="0.25"
-                    android:choiceMode="singleChoice"
-                    android:clickable="true"
-                    android:dividerHeight="0dp" />
-
-                <ListView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:id="@+id/paletteListView"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|right"
                     android:layout_marginBottom="60dp"
                     android:alpha="0.9"
-                    android:layout_gravity="bottom|right"
-                    android:layout_weight="0.75"
                     android:choiceMode="singleChoice"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
                     android:clickable="true"
-                    android:dividerHeight="0dp" />
+                    android:dividerHeight="0dp"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                <GridView
+                    android:id="@+id/paletteGridView"
+                    android:layout_width="0dp"
+                    android:layout_weight="1.0"
+                    android:layout_height="wrap_content"
+                    android:columnWidth="80dp"
+                    android:numColumns="3"
+                    android:stretchMode="columnWidth"
+                    android:verticalSpacing="10dp"
+                    android:horizontalSpacing="10dp"/>
             </LinearLayout>
 
-            <ImageButton style="?metaButtonBarButtonStyle"
+            <ImageButton
+                android:id="@+id/imageButton"
+                style="?metaButtonBarButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/imageButton"
+                android:layout_gravity="center_horizontal|bottom"
                 android:layout_weight="0.33"
                 android:onClick="onCaptureImageClicked"
-                android:src="@android:drawable/ic_menu_camera"
-                android:layout_gravity="center_horizontal|bottom" />
+                android:src="@android:drawable/ic_menu_camera" />
 
-            <ToggleButton android:id="@+id/change_view_button" style="?metaButtonBarButtonStyle"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_weight="0.33" android:textOff="@string/change_view"
-                android:textOn="@string/change_view_retract"
+            <ToggleButton
+                android:id="@+id/change_view_button"
+                style="?metaButtonBarButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|left"
+                android:layout_weight="0.33"
                 android:onClick="onChangeViewClicked"
-                android:layout_gravity="bottom|left" />
+                android:textOff="@string/change_view_cn"
+                android:textOn="@string/change_view_retract_cn" />
 
             <Button
-                android:layout_width="wrap_content" style="?metaButtonBarButtonStyle"
-                android:layout_height="wrap_content"
-                android:text="@string/connectSim"
                 android:id="@+id/connect_sim_button"
+                style="?metaButtonBarButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|bottom|right"
                 android:onClick="onConnectSimClicked"
-                android:layout_gravity="center_horizontal|bottom|right" />
+                android:text="@string/connectSim_cn" />
 
 
         </FrameLayout>
 
         <ProgressBar
+            android:id="@+id/tuningProgressBar"
             style="?android:attr/progressBarStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/tuningProgressBar"
             android:layout_gravity="center"
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/tuningTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/txtTuning_cn"
-            android:id="@+id/tuningTextView"
-            android:labelFor="@id/tuningProgressBar"
             android:layout_gravity="center"
             android:layout_marginTop="36dp"
+            android:labelFor="@id/tuningProgressBar"
+            android:text="@string/txtTuning_cn"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/pleaseConnect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/Please_Connect_FLIR_One"
-            android:id="@+id/pleaseConnect"
             android:layout_gravity="center"
             android:layout_marginTop="90dp"
+            android:text="@string/Please_Connect_FLIR_One"
+            android:textAppearance="?android:attr/textAppearanceLarge"
             android:visibility="gone" />
 
 
     </FrameLayout>
 
     <ImageView
+        android:id="@+id/spotMeterIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/spotMeterIcon"
         android:layout_gravity="center"
-        android:src="@android:drawable/ic_menu_mylocation"
-        android:alpha="0.9" />
+        android:alpha="0.9"
+        android:src="@android:drawable/ic_menu_mylocation" />
 
     <TextView
+        android:id="@+id/spotMeterValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:id="@+id/spotMeterValue"
         android:layout_gravity="center"
         android:alpha="0.9"
         android:paddingTop="39dp"
         android:shadowColor="#000000"
         android:shadowDx="0"
         android:shadowDy="0"
-        android:shadowRadius="3"/>
+        android:shadowRadius="3"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 </FrameLayout>
