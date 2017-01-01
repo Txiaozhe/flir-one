@@ -8,10 +8,7 @@ import com.flir.flironeexampleapplication.util.SystemUiHider;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
@@ -24,14 +21,13 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -55,11 +51,8 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -77,7 +70,7 @@ import java.util.Map;
  * @see com.flir.flironesdk.Device.StreamDelegate
  * @see com.flir.flironesdk.Device.PowerUpdateDelegate
  */
-public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate, Device.PowerUpdateDelegate {
+public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate{
     ImageView thermalImageView;
     private volatile boolean imageCaptureRequested = false;
     private volatile Socket streamSocket = null;
@@ -86,11 +79,13 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     private int deviceRotation = 0;
     private OrientationEventListener orientationEventListener;
 
-
     private volatile Device flirOneDevice;
     private FrameProcessor frameProcessor;
 
     private String lastSavedPath;
+
+    //控制警告是否打开
+    private ToggleButton warnButton;
 
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
     // Device Delegate methods
@@ -111,7 +106,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         });
 
         flirOneDevice = device;
-        flirOneDevice.setPowerUpdateDelegate(this);
         flirOneDevice.startFrameStream(this);
 
         final ToggleButton chargeCableButton = (ToggleButton) findViewById(R.id.chargeCableToggle);
@@ -145,17 +139,13 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         Log.i("ExampleApp", "Device disconnected!");
 
         final ToggleButton chargeCableButton = (ToggleButton) findViewById(R.id.chargeCableToggle);
-        final TextView levelTextView = (TextView) findViewById(R.id.batteryLevelTextView);
-        final ImageView chargingIndicator = (ImageView) findViewById(R.id.batteryChargeIndicator);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 findViewById(R.id.pleaseConnect).setVisibility(View.GONE);
                 thermalImageView.setImageBitmap(Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8));
-                levelTextView.setText("--");
                 chargeCableButton.setChecked(chargeCableIsConnected);
                 chargeCableButton.setVisibility(View.INVISIBLE);
-                chargingIndicator.setVisibility(View.GONE);
                 thermalImageView.clearColorFilter();
                 findViewById(R.id.tuningProgressBar).setVisibility(View.GONE);
                 findViewById(R.id.tuningTextView).setVisibility(View.GONE);
@@ -202,64 +192,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     @Override
     public void onAutomaticTuningChanged(boolean deviceWillTuneAutomatically) {
-
-    }
-
-    private ColorFilter originalChargingIndicatorColor = null;
-
-    /**
-     * 获取电池状态
-     * @param batteryChargingState
-     */
-    @Override
-    public void onBatteryChargingStateReceived(final Device.BatteryChargingState batteryChargingState) {
-        Log.i("ExampleApp", "Battery charging state received!");
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ImageView chargingIndicator = (ImageView) findViewById(R.id.batteryChargeIndicator);
-                if (originalChargingIndicatorColor == null) {
-                    originalChargingIndicatorColor = chargingIndicator.getColorFilter();
-                }
-                switch (batteryChargingState) {
-                    case FAULT:
-                    case FAULT_HEAT:
-                        chargingIndicator.setColorFilter(Color.RED);
-                        chargingIndicator.setVisibility(View.VISIBLE);
-                        break;
-                    case FAULT_BAD_CHARGER:
-                        chargingIndicator.setColorFilter(Color.DKGRAY);
-                        chargingIndicator.setVisibility(View.VISIBLE);
-                    case MANAGED_CHARGING:
-                        chargingIndicator.setColorFilter(originalChargingIndicatorColor);
-                        chargingIndicator.setVisibility(View.VISIBLE);
-                        break;
-                    case NO_CHARGING:
-                    default:
-                        chargingIndicator.setVisibility(View.GONE);
-                        break;
-                }
-            }
-        });
-    }
-
-    /**
-     * 获取电池电量百分比
-     * @param percentage
-     */
-    @Override
-    public void onBatteryPercentageReceived(final byte percentage) {
-        Log.i("ExampleApp", "Battery percentage received!");
-
-        final TextView levelTextView = (TextView) findViewById(R.id.batteryLevelTextView);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                levelTextView.setText(String.valueOf((int) percentage) + "%");
-            }
-        });
-
 
     }
 
@@ -312,26 +244,34 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             };
 
             //////扫描全屏温度并进行高温预警
-            Thread thread = new Thread(new Runnable() {
+
+            Thread warnThread = new Thread(new Runnable() {
                 short[] thermalPixels = renderedImage.thermalPixelData();
                 int width = renderedImage.width();
                 int height = renderedImage.height();
+                //播放警告音
+                MediaPlayer mp;
                 @Override
                 public void run() {
+                    double pixelCMax = 0;
+                    int pixelTemp;
                     for(int i = 0; i < width * height; i++) {
-                        int pixelIndex = i;
-                        int pixelTemp = thermalPixels[i] & 0xffff;
+                        pixelTemp = thermalPixels[i] & 0xffff;
                         //Log.i("everyPixelTemp", pixelTemp + "  " + i);
                         double pixelC = (pixelTemp / 100) - 273.15;
-                        if(pixelC >= 40) {
-                            //Log.i("warm", pixelC + " 高温警告");
-                            MediaPlayer mp = MediaPlayer.create(PreviewActivity.this, R.raw.warn);
-                            mp.start();
-                        }
+                        pixelCMax = pixelCMax < pixelC ? pixelC : pixelCMax;
                     }
+                    if(pixelCMax >= 40 && warnButton.isChecked() == true) {
+                        //Log.i("warm", pixelC + " 高温警告");
+                        mp = MediaPlayer.create(PreviewActivity.this, R.raw.warn);
+                        mp.start();
+                    }
+                    //Log.i("ischeckeddddd", warnButton.isChecked() + "");
                 }
             });
-            thread.run();
+
+            warnThread.start();
+
 
             //////
 
@@ -500,6 +440,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
      */
     private SystemUiHider mSystemUiHider;
 
+    //tune按钮，调整或要求高的热精度
     public void onTuneClicked(View v) {
         if (flirOneDevice != null) {
             flirOneDevice.performTuning();
@@ -507,8 +448,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     }
 
+    //拍照
     public void onCaptureImageClicked(View v) {
-
 
         // if nothing's connected, let's load an image instead?
 
@@ -516,21 +457,24 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             // load!
             File file = new File(lastSavedPath);
 
-
             LoadedFrame frame = new LoadedFrame(file);
 
             // load the frame
             onFrameReceived(frame);
         } else {
+            Log.i("paizhao", "dededed");
             this.imageCaptureRequested = true;
         }
     }
 
+    /**
+     * 连接硬件
+     * @param v
+     */
     public void onConnectSimClicked(View v) {
         if (flirOneDevice == null) {
             try {
                 flirOneDevice = new SimulatedDevice(this, this, getResources().openRawResource(R.raw.sampleframes), 10);
-                flirOneDevice.setPowerUpdateDelegate(this);
                 chargeCableIsConnected = true;
             } catch (Exception ex) {
                 flirOneDevice = null;
@@ -550,15 +494,17 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         }
     }
 
+    //旋转视图，旋转按钮
     public void onRotateClicked(View v) {
         ToggleButton theSwitch = (ToggleButton) v;
         if (theSwitch.isChecked()) {
-            thermalImageView.setRotation(180);
+            thermalImageView.setRotation(180); //旋转180度
         } else {
             thermalImageView.setRotation(0);
         }
     }
 
+    //打开、关闭滤镜视图
     public void onChangeViewClicked(View v) {
         if (frameProcessor == null) {
             ((ToggleButton) v).setChecked(false);
@@ -597,7 +543,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     /**
      * Example method of starting/stopping a frame stream to a host
-     *
+     * Socket服务，视图上的Socket按钮
      * @param v The toggle button pushed
      */
     public void onNetStreamClicked(View v) {
@@ -694,6 +640,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         final View controlsViewTop = findViewById(R.id.fullscreen_content_controls_top);
         final View contentView = findViewById(R.id.fullscreen_content);
 
+        warnButton = (ToggleButton) findViewById(R.id.warnButton);
 
         HashMap<Integer, String> imageTypeNames = new HashMap<>();
         // Massage the type names for display purposes and skip any deprecated
@@ -921,4 +868,5 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+
 }

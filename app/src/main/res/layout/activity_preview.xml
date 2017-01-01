@@ -29,7 +29,7 @@
 
         <LinearLayout
             android:id="@+id/fullscreen_content_controls_top"
-            style="@android:style/ButtonBar"
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top|center_horizontal"
@@ -37,40 +37,23 @@
             android:orientation="horizontal"
             tools:ignore="UselessParent">
 
-            <TextView
-                android:id="@+id/batteryLabelTextView"
+            <ToggleButton
+                android:id="@+id/warnButton"
                 style="?actionMenuTextAppearance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left|center_vertical"
+                android:layout_gravity="left|start"
                 android:layout_margin="8dp"
                 android:layout_weight="0"
-                android:text="@string/battery_label_cn"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
-
-            <ImageView
-                android:id="@+id/batteryChargeIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left|center_vertical"
-                android:layout_weight="0"
-                android:src="@android:drawable/ic_lock_idle_charging"
-                android:tint="@color/accent_material_light"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/batteryLevelTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left|center_vertical"
-                android:layout_weight="0.48"
-                android:text="--"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:textOff="@string/openWarn"
+                android:textOn="@string/closeWarn"
+                android:checked="true"/>
 
             <ToggleButton
                 android:id="@+id/chargeCableToggle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="start"
                 android:layout_weight="0.10"
                 android:checked="false"
                 android:onClick="onSimulatedChargeCableToggleClicked"
@@ -82,6 +65,7 @@
                 style="?metaButtonBarButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="start"
                 android:onClick="onNetStreamClicked"
                 android:textOff="@string/startNetStream_cn"
                 android:textOn="@string/stopNetStream_cn" />
@@ -89,8 +73,9 @@
             <Button
                 android:id="@+id/tuneButton"
                 style="?metaButtonBarButtonStyle"
-                android:layout_width="51dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="start"
                 android:onClick="onTuneClicked"
                 android:text="@string/performTuning_cn" />
 
@@ -99,7 +84,7 @@
                 style="?metaButtonBarButtonStyle"
                 android:layout_width="47dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
+                android:layout_gravity="right|start"
                 android:onClick="onRotateClicked"
                 android:text="@string/rotate_on_cn"
                 android:textOff="@string/rotate_off_cn"

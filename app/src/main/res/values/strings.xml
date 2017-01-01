@@ -16,14 +16,16 @@
     <string name="app_name_cn">FLIR ONE 热成像仪</string>
     <string name="change_view_cn">滤镜 \u21EA</string>
     <string name="change_view_retract_cn">滤镜 \u21B2</string>
-    <string name="connectSim_cn">切换 Sim</string>
-    <string name="performTuning_cn">Tune</string>
+    <string name="connectSim_cn">已连接</string>
+    <string name="performTuning_cn">校准</string>
     <string name="rotate_on_cn">\u21BA</string>
     <string name="rotate_off_cn">\u21BB</string>
     <string name="battery_label_cn">电池:</string>
     <string name="txtTuning_cn">加载中...</string>
-    <string name="startNetStream_cn">调整</string>
-    <string name="stopNetStream_cn">断开连接</string>
+    <string name="startNetStream_cn">连接Socket</string>
+    <string name="stopNetStream_cn">断开Socket</string>
+    <string name="openWarn">打开高温警告\n已关闭</string>
+    <string name="closeWarn">关闭高温警告\n已开启</string>
 
     <string name="Please_Connect_FLIR_One" >请连接一个FLIR One设备</string>
 </resources>
