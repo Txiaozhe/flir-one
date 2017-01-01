@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.flir.flironeexampleapplication.R;
+import com.flir.flironesdk.Device;
 
 /**
  * Created by txiaozhe on 18/12/2016.
