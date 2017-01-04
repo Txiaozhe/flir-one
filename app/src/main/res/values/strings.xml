@@ -13,10 +13,11 @@
     <string name="startNetStream">Stream</string>
     <string name="stopNetStream">Disconnect</string>
 
+    <!-- \u21EA  \u21B2  滤镜的两个图标-->
     <string name="app_name_cn">FLIR ONE 热成像仪</string>
-    <string name="change_view_cn">滤镜 \u21EA</string>
-    <string name="change_view_retract_cn">滤镜 \u21B2</string>
-    <string name="connectSim_cn">已连接</string>
+    <string name="change_view_cn">滤镜\n(已使用默认滤镜)</string>
+    <string name="change_view_retract_cn">滤镜\n(已使用默认滤镜)</string>
+    <string name="connectSim_cn">FLIR设备已连接</string>
     <string name="performTuning_cn">校准</string>
     <string name="rotate_on_cn">\u21BA</string>
     <string name="rotate_off_cn">\u21BB</string>

@@ -23,16 +23,20 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -51,6 +55,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -90,8 +95,25 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //控制警告是否打开
     private ToggleButton warnButton;
-    //
-    private RenderedImage mRImage;
+
+    //下拉列表选择阈值
+    private Spinner spinner;
+    private String[] threshold_arr;
+    private int threshold;
+
+    //点击屏幕获取温度
+    private FrameLayout showThermal;
+    private ImageView coordinate_image;
+    private float temp;
+    private TextView showTemp;
+    private float coordinateX = 100;
+    private float coordinateY = 100;
+    private float absoluteX;
+    private float absoluteY;
+    private int width;
+    private int height;
+    private short[] thermalPixels;
+    private double coordinateTemp;
 
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
     // Device Delegate methods
@@ -225,19 +247,18 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     //获取温度
     //视图处理器授权方法，将访问每次的frame的产生
     // Frame Processor Delegate method, will be called each time a rendered frame is produced
-    //这个方法实现了FrameProcessor.Delegate接口
+    //这个方法实现了FrameProcessor.Delegate接口,这个方法实时进行扫描
     public void onFrameProcessed(final RenderedImage renderedImage) {
         Log.i("onFrameProcessed", "onFrameProcessed");
-        mRImage = renderedImage;
         if (renderedImage.imageType() == RenderedImage.ImageType.ThermalRadiometricKelvinImage) {
             // Note: this code is not optimized
 
-            short[] thermalPixels = renderedImage.thermalPixelData(); //thermalPixels[76800]
+            thermalPixels = renderedImage.thermalPixelData(); //thermalPixels[76800]
             //每次扫描都会产生这样的一串数组
             // average the center 9 pixels for the spot meter
 
-            int width = renderedImage.width();
-            int height = renderedImage.height();  //width * height = 76800
+            width = renderedImage.width();
+            height = renderedImage.height();  //width * height = 76800
             int centerPixelIndex = width * (height / 2) + (width / 2);
             int[] centerPixelIndexes = new int[]{
                     centerPixelIndex, centerPixelIndex - 1, centerPixelIndex + 1,
@@ -250,8 +271,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             };
 
             //////扫描全屏温度并进行高温预警
-
-            Thread warnThread = new Thread(new Runnable() {
+            new Thread(new Runnable() {
                 short[] thermalPixels = renderedImage.thermalPixelData();
                 int width = renderedImage.width();
                 int height = renderedImage.height();
@@ -268,17 +288,14 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                         double pixelC = (pixelTemp / 100) - 273.15;
                         pixelCMax = pixelCMax < pixelC ? pixelC : pixelCMax;
                     }
-                    if (pixelCMax >= 40 && warnButton.isChecked() == true) {
+                    if (pixelCMax >= threshold && warnButton.isChecked() == true) {
                         //Log.i("warm", pixelC + " 高温警告");
                         mp = MediaPlayer.create(PreviewActivity.this, R.raw.warn);
                         mp.start();
                     }
                     //Log.i("ischeckeddddd", warnButton.isChecked() + "");
                 }
-            });
-
-            warnThread.start();
-
+            }).start();
             //////
 
             double averageTemp = 0; //平均温度，单位K
@@ -288,6 +305,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 // we could also use renderedImage.thermalPixelValues() instead
                 int pixelValue = (thermalPixels[centerPixelIndexes[i]]) & 0xffff;
 
+                //Log.i("thermalPixelsXY", thermalPixels[coordinateX] + "");
+
                 averageTemp += (((double) pixelValue) - averageTemp) / ((double) i + 1);
             }
             //Log.i("centerPixelIndex", centerPixelIndexes.length + "");
@@ -295,8 +314,21 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             NumberFormat numberFormat = NumberFormat.getInstance();
             numberFormat.setMaximumFractionDigits(2);
             numberFormat.setMinimumFractionDigits(2);
+            //显示温度
             final String spotMeterValue = numberFormat.format(averageC) + "ºC";
             //Log.i("averageC", averageTemp + "");
+
+            //获取屏幕对应像素点的温度
+            String where = (absoluteY / 3 - 1) * (absoluteX / 3) + "";
+            int dot = where.indexOf(".");
+            Log.i("where", where.substring(0, dot));
+            try{
+                coordinateTemp = thermalPixels[Integer.parseInt(where.substring(0, dot))];
+                Log.i("temp", (coordinateTemp / 100 - 273.15) + "");
+            } catch (Exception e) {
+
+            }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -337,19 +369,14 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             new Thread(new Runnable() {
                 public void run() {
                     String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-                    int suffix = (int) (Math.random() * (9999 - 1000 + 1)) + 1000;
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault());
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ssZ", Locale.getDefault());
                     String formatedDate = sdf.format(new Date());
-                    String fileName = "FLIROne" + formatedDate + suffix + ".jpg";
-                    Log.i("path", path);
-                    try {
-                        lastSavedPath = path + "/" + fileName;
-                        Log.i("lastSavedPath", lastSavedPath);
+                    String fileName = "FLIROne" + formatedDate + ".jpg";
+                    try{
+                        lastSavedPath = path+ "/" + fileName;
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
-                        Log.i("getBitmap", renderedImage.getBitmap().toString());
 
-                        Bitmap bitmap=BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-                        saveBitmap(bitmap, lastSavedPath);
+                        Log.i("lastSavedPath", lastSavedPath);
 
                         MediaScannerConnection.scanFile(context,
                                 new String[]{path + "/" + fileName}, null,
@@ -361,11 +388,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                                     }
 
                                 });
-                        Log.i("Exception", "e");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Log.i("Exception", e.toString());
 
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
                     runOnUiThread(new Runnable() {
                         @Override
@@ -464,11 +489,11 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     }
 
     //拍照
-    public void onCaptureImageClicked(View v) {
+    public void onCaptureImageClicked(View v){
 
         // if nothing's connected, let's load an image instead?
-        this.imageCaptureRequested = true;
-        if (flirOneDevice == null && lastSavedPath != null) {
+
+        if(flirOneDevice == null && lastSavedPath != null) {
             // load!
             File file = new File(lastSavedPath);
 
@@ -478,7 +503,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             onFrameReceived(frame);
         } else {
             this.imageCaptureRequested = true;
-            Log.i("imageCaptureRequested", imageCaptureRequested + "");
         }
     }
 
@@ -490,46 +514,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         int suffix = (int) (Math.random() * (9999 - 1000 + 1)) + 1000;
         String fileName = time + suffix;
         return fileName;
-    }
-
-    //保存图片到本地
-    private boolean saveBitmapToFile(Bitmap bmp, String fileAbstractName) {
-        if (bmp == null || fileAbstractName == null)
-            return false;
-        Bitmap.CompressFormat format = Bitmap.CompressFormat.JPEG;
-        int quality = 100;
-        OutputStream stream = null;
-        try {
-            stream = new FileOutputStream(fileAbstractName);
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return bmp.compress(format, quality, stream);
-    }
-
-    private void saveBitmap(Bitmap bitmap, String bitName) throws IOException {
-        File file = new File(bitName);
-        if(file.exists()){
-            file.delete();
-        }
-        FileOutputStream out;
-        try{
-            out = new FileOutputStream(file);
-            if(bitmap.compress(Bitmap.CompressFormat.PNG, 90, out))
-            {
-                out.flush();
-                out.close();
-            }
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
     }
 
 
@@ -699,7 +683,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_preview);
 
         //获取三块视图
@@ -707,7 +691,33 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         final View controlsViewTop = findViewById(R.id.fullscreen_content_controls_top);
         final View contentView = findViewById(R.id.fullscreen_content);
 
+        //是否开启警报
         warnButton = (ToggleButton) findViewById(R.id.warnButton);
+        //阈值
+        spinner = (Spinner) findViewById(R.id.threshold);
+        threshold_arr = getResources().getStringArray(R.array.threshold_arr);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.i("threshold", threshold_arr[position]);
+                threshold = Integer.parseInt(threshold_arr[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+//        thermalImageView
+
+        //初始化点击屏幕获取温度值组件
+        showThermal = (FrameLayout) findViewById(R.id.showThermal);
+        showThermal.setX(150);
+        showThermal.setY(150);
+        showTemp = (TextView) findViewById(R.id.showTemp);
+        showTemp.setText(coordinateTemp + "℃");
+        coordinate_image = (ImageView) findViewById(R.id.coordinate_image);
 
         HashMap<Integer, String> imageTypeNames = new HashMap<>();
         // Massage the type names for display purposes and skip any deprecated
@@ -776,45 +786,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         mSystemUiHider = SystemUiHider.getInstance(this, contentView, HIDER_FLAGS);
         mSystemUiHider.setup();
 
-        mSystemUiHider
-                .setOnVisibilityChangeListener(new SystemUiHider.OnVisibilityChangeListener() {
-                    // Cached values.
-                    int mControlsHeight;
-                    int mShortAnimTime;
-
-                    @Override
-                    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-                    public void onVisibilityChange(boolean visible) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-                            // If the ViewPropertyAnimator API is available
-                            // (Honeycomb MR2 and later), use it to animate the
-                            // in-layout UI controls at the bottom of the
-                            // screen.
-                            if (mControlsHeight == 0) {
-                                mControlsHeight = controlsView.getHeight();
-                            }
-                            if (mShortAnimTime == 0) {
-                                mShortAnimTime = getResources().getInteger(
-                                        android.R.integer.config_shortAnimTime);
-                            }
-                            controlsView.animate()
-                                    .translationY(visible ? 0 : mControlsHeight)
-                                    .setDuration(mShortAnimTime);
-                            controlsViewTop.animate().translationY(visible ? 0 : -1 * mControlsHeight).setDuration(mShortAnimTime);
-                        } else {
-                            // If the ViewPropertyAnimator APIs aren't
-                            // available, simply show or hide the in-layout UI
-                            // controls.
-                            controlsView.setVisibility(visible ? View.VISIBLE : View.GONE);
-                            controlsViewTop.setVisibility(visible ? View.VISIBLE : View.GONE);
-                        }
-
-                        if (visible && !((ToggleButton) findViewById(R.id.change_view_button)).isChecked() && AUTO_HIDE) {
-                            // Schedule a hide().
-                            delayedHide(AUTO_HIDE_DELAY_MILLIS);
-                        }
-                    }
-                });
 
         // Set up the user interaction to manually show or hide the system UI.
         contentView.setOnClickListener(new View.OnClickListener() {
@@ -831,8 +802,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
+        //滤镜按钮
         findViewById(R.id.change_view_button).setOnTouchListener(mDelayHideTouchListener);
-
 
         orientationEventListener = new OrientationEventListener(this) {
             @Override
@@ -858,10 +829,29 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         });
 
+        //点击坐标获得温度值
         findViewById(R.id.fullscreen_content).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 mScaleDetector.onTouchEvent(event);
+                Log.i("eventx-y", event.getX() + ", " + event.getY());
+                coordinateX = event.getX();
+                coordinateY = event.getY();
+                if(coordinateY < 160) {
+                    coordinateY = 160;
+                } else if(coordinateY > 1120) {
+                    coordinateY = 1120;
+                }
+                Log.i("width&height", width + ", " + height);
+
+                absoluteX = coordinateX - coordinate_image.getWidth() / 2;
+                absoluteY = coordinateY - coordinate_image.getHeight() / 2;
+
+                showThermal.setX(absoluteX);
+                showThermal.setY(absoluteY);
+
+                //thermalPixels 温度扫描结果产生的数组
+                showTemp.setText(coordinateX + ", " + coordinateY);
                 return true;
             }
         });

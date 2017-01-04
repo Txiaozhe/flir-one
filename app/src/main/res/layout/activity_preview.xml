@@ -16,10 +16,7 @@
         android:id="@+id/imageView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_gravity="center_horizontal|top"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:scaleType="fitCenter" />
+        android:layout_gravity="center_horizontal|top"/>
 
     <FrameLayout
         android:id="@+id/fullscreen_content"
@@ -29,7 +26,6 @@
 
         <LinearLayout
             android:id="@+id/fullscreen_content_controls_top"
-
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top|center_horizontal"
@@ -43,11 +39,31 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="left|start"
-                android:layout_margin="8dp"
                 android:layout_weight="0"
+                android:checked="false"
                 android:textOff="@string/openWarn"
                 android:textOn="@string/closeWarn"
-                android:checked="true"/>
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="选择警告阈值"
+                    android:textSize="12sp" />
+
+                <Spinner
+                    android:id="@+id/threshold"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/threshold_arr" />
+            </LinearLayout>
+
 
             <ToggleButton
                 android:id="@+id/chargeCableToggle"
@@ -66,9 +82,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
+                android:enabled="false"
                 android:onClick="onNetStreamClicked"
                 android:textOff="@string/startNetStream_cn"
-                android:textOn="@string/stopNetStream_cn" />
+                android:textOn="@string/stopNetStream_cn"
+                android:textSize="12sp" />
 
             <Button
                 android:id="@+id/tuneButton"
@@ -129,13 +147,13 @@
                 <GridView
                     android:id="@+id/paletteGridView"
                     android:layout_width="0dp"
-                    android:layout_weight="1.0"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1.0"
                     android:columnWidth="80dp"
+                    android:horizontalSpacing="10dp"
                     android:numColumns="3"
                     android:stretchMode="columnWidth"
-                    android:verticalSpacing="10dp"
-                    android:horizontalSpacing="10dp"/>
+                    android:verticalSpacing="10dp" />
             </LinearLayout>
 
             <ImageButton
@@ -155,9 +173,11 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|left"
                 android:layout_weight="0.33"
+                android:enabled="false"
                 android:onClick="onChangeViewClicked"
                 android:textOff="@string/change_view_cn"
-                android:textOn="@string/change_view_retract_cn" />
+                android:textOn="@string/change_view_retract_cn"
+                android:textSize="12sp" />
 
             <Button
                 android:id="@+id/connect_sim_button"
@@ -166,7 +186,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal|bottom|right"
                 android:onClick="onConnectSimClicked"
-                android:text="@string/connectSim_cn" />
+                android:text="@string/connectSim_cn"
+                android:textSize="12sp" />
 
 
         </FrameLayout>
@@ -200,6 +221,47 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:visibility="gone" />
 
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/showThermal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:layout_marginLeft="100dp">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/coordinate_image"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@mipmap/coordinate"
+                    />
+            </FrameLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:id="@+id/showTemp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="35.8C"
+                    android:textColor="#ffffff"
+                    android:textSize="18sp"/>
+            </LinearLayout>
+
+        </LinearLayout>
 
     </FrameLayout>
 
