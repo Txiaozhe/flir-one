@@ -448,9 +448,12 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             new Thread(new Runnable() {
                 public void run() {
                     String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+                    Log.i("lastSavedPath", "Storage:" + path);
+
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ssZ", Locale.getDefault());
                     String formatedDate = sdf.format(new Date());
-                    String fileName = "FLIROne" + formatedDate + ".jpg";
+                    String fileName = "FLIROne" + getFileName() + ".jpg";
+                    //String fileName = "FLIROne" + formatedDate + ".jpg";
                     try {
                         lastSavedPath = path + "/" + fileName;
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
@@ -462,14 +465,14 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                                 new MediaScannerConnection.OnScanCompletedListener() {
                                     @Override
                                     public void onScanCompleted(String path, Uri uri) {
-                                        Log.i("ExternalStorage", "Scanned " + path + ":");
-                                        Log.i("ExternalStorage", "-> uri=" + uri);
+                                        Log.i("lastSavedPath", "Scanned " + path + ":");
+                                        Log.i("lastSavedPath", "-> uri=" + uri);
                                     }
 
                                 });
 
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Log.e("Exp", e.toString());
                     }
                     runOnUiThread(new Runnable() {
                         @Override
