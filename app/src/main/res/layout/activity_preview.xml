@@ -36,33 +36,24 @@
             <ToggleButton
                 android:id="@+id/warnButton"
                 style="?actionMenuTextAppearance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left|start"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginLeft="30dp"
+                android:layout_gravity="left|center"
                 android:layout_weight="0"
-                android:checked="false"
-                android:textOff="@string/openWarn"
-                android:textOn="@string/closeWarn"
-                android:textSize="12sp" />
+                android:textOff=""
+                android:textOn=""
+                android:checked="true"
+                android:textSize="12sp"
+                android:background="@mipmap/bell_open"/>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="选择警告阈值"
-                    android:textSize="12sp" />
-
-                <Spinner
-                    android:id="@+id/threshold"
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:entries="@array/threshold_arr" />
-            </LinearLayout>
+            <Button
+                android:id="@+id/showDialog"
+                android:layout_width="100dp"
+                android:layout_height="50dp"
+                android:layout_marginLeft="30dp"
+                android:textSize="12sp"
+                android:text="设置阈值"/>
 
 
             <ToggleButton
@@ -74,7 +65,7 @@
                 android:checked="false"
                 android:onClick="onSimulatedChargeCableToggleClicked"
                 android:text="Cable"
-                android:visibility="invisible" />
+                android:visibility="gone" />
 
             <ToggleButton
                 android:id="@+id/streamButton"
@@ -86,7 +77,8 @@
                 android:onClick="onNetStreamClicked"
                 android:textOff="@string/startNetStream_cn"
                 android:textOn="@string/stopNetStream_cn"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/tuneButton"
@@ -95,7 +87,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:onClick="onTuneClicked"
-                android:text="@string/performTuning_cn" />
+                android:text="@string/performTuning_cn"
+                android:visibility="gone"/>
 
             <ToggleButton
                 android:id="@+id/switch_rotate"
@@ -106,7 +99,8 @@
                 android:onClick="onRotateClicked"
                 android:text="@string/rotate_on_cn"
                 android:textOff="@string/rotate_off_cn"
-                android:textOn="@string/rotate_on_cn" />
+                android:textOn="@string/rotate_on_cn"
+                android:visibility="gone"/>
 
 
         </LinearLayout>
@@ -177,7 +171,8 @@
                 android:onClick="onChangeViewClicked"
                 android:textOff="@string/change_view_cn"
                 android:textOn="@string/change_view_retract_cn"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/connect_sim_button"
@@ -187,7 +182,8 @@
                 android:layout_gravity="center_horizontal|bottom|right"
                 android:onClick="onConnectSimClicked"
                 android:text="@string/connectSim_cn"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:visibility="gone"/>
 
 
         </FrameLayout>
@@ -229,7 +225,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
-        android:layout_marginLeft="100dp">
+        android:layout_marginLeft="100dp"
+        android:visibility="gone">
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
