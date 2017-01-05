@@ -130,7 +130,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             public void onClick(DialogInterface dialog, int i) {
                 boolean exc = false;
                 int low = sp.getInt("low", 20);
-                int high = sp.getInt("high", 20);
+                int high = sp.getInt("high", 40);
                 try {
                     String lowText = picker1.getText().toString();
                     String highText = picker2.getText().toString();

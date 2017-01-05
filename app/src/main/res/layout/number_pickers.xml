@@ -23,7 +23,7 @@
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="阈值2" />
+        android:text="阈值2（阈值2应大于阈值1）" />
 
     <EditText
         android:id="@+id/picker2"
