@@ -15,8 +15,10 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.content.Context;
 import android.app.Activity;
@@ -39,6 +41,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.NumberPicker;
@@ -70,11 +73,15 @@ import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import deveoper.lin.local.picturebrowse.ImageMainActivity;
 
 /**
  * An example activity and delegate for FLIR One image streaming and device interaction.
@@ -115,6 +122,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     private SharedPreferences sp;
 
+    //查看图片
+    private ImageButton showImage;
 
     private void showAddDialog() {
 
@@ -142,7 +151,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
 
                 //低阈值高于高阈值时
-                if(low >= high || exc) {
+                if (low >= high || exc) {
                     final AlertDialog.Builder normalDialog =
                             new AlertDialog.Builder(PreviewActivity.this);
                     normalDialog.setIcon(android.R.drawable.ic_dialog_info);
@@ -364,10 +373,10 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     }
                     mp = MediaPlayer.create(PreviewActivity.this, R.raw.warn);
                     mp_strong = MediaPlayer.create(PreviewActivity.this, R.raw.warn_strong);
-                    if(warnButton.isChecked() == true) {
-                        if(pixelCMax > threshold_low && pixelCMax < threshold_high) {
+                    if (warnButton.isChecked() == true) {
+                        if (pixelCMax > threshold_low && pixelCMax < threshold_high) {
                             mp.start();
-                        } else if(pixelCMax > threshold_high) {
+                        } else if (pixelCMax > threshold_high) {
                             mp.stop();
                             mp_strong.start();
                         }
@@ -458,6 +467,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                         lastSavedPath = path + "/" + fileName;
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
 
+                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(path)));
                         Log.i("lastSavedPath", lastSavedPath);
 
                         MediaScannerConnection.scanFile(context,
@@ -470,6 +480,14 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                                     }
 
                                 });
+
+                        MyImage myImage = getDiskBitmap(path);
+                        Log.i("filelength1", myImage.files.length + "");
+                        if(myImage.files.length != 0) {
+                            Bitmap thumb = getImageThumbnail(myImage.files[myImage.files.length - 1].getPath(), 100, 100);
+                            showImage.setImageBitmap(thumb);
+                            Log.i("iconimage", myImage.files[0].toString());
+                        }
 
                     } catch (Exception e) {
                         Log.e("Exp", e.toString());
@@ -586,6 +604,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         } else {
             this.imageCaptureRequested = true;
         }
+
     }
 
     //获取文件名
@@ -779,7 +798,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         warnButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
+                if (isChecked) {
                     warnButton.setBackgroundResource(R.mipmap.bell_open);
                     Toast.makeText(PreviewActivity.this, "高温警报已开启！", Toast.LENGTH_SHORT).show();
                 } else {
@@ -959,6 +978,88 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         });
 
+        //点击查看所有图片
+        showImage = (ImageButton) findViewById(R.id.showImage);
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+        MyImage myImage = getDiskBitmap(path);
+        if(myImage.files.length != 0) {
+            Log.i("filelength2", myImage.files.length + "");
+            Bitmap thumb = getImageThumbnail(myImage.files[myImage.files.length - 1].getPath(), 100, 100);
+            showImage.setImageBitmap(thumb);
+            Log.i("iconimage", myImage.files[myImage.files.length - 1].toString());
+        }
+        showImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(PreviewActivity.this, ImageMainActivity.class);
+                startActivity(i);
+            }
+        });
+
+    }
+
+    class MyImage {
+        Bitmap bitmap;
+        File[] files;
+    }
+
+    //获取本地图片
+    private MyImage getDiskBitmap(String pathString) {
+        MyImage myImage = new MyImage();
+
+        Bitmap bitmap = null;
+        File[] files;
+        try {
+            File file = new File(pathString);
+            files = file.listFiles();
+            for(int i = 0; i < files.length; i++) {
+                Log.i("filessssss", files[i].getName());
+            }
+            if (file.exists()) {
+                bitmap = BitmapFactory.decodeFile(pathString);
+
+            }
+
+            myImage.bitmap = bitmap;
+            myImage.files = files;
+
+        } catch (Exception e) {
+            // TODO: handle exception
+            Log.i("filessssss", e.toString());
+        }
+
+        return myImage;
+    }
+
+    //获取缩略图
+    private Bitmap getImageThumbnail(String imagePath, int width, int height) {
+        Bitmap bitmap = null;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        // 获取这个图片的宽和高，注意此处的bitmap为null
+        bitmap = BitmapFactory.decodeFile(imagePath, options);
+        options.inJustDecodeBounds = false; // 设为 false
+        // 计算缩放比
+        int h = options.outHeight;
+        int w = options.outWidth;
+        int beWidth = w / width;
+        int beHeight = h / height;
+        int be = 1;
+        if (beWidth < beHeight) {
+            be = beWidth;
+        } else {
+            be = beHeight;
+        }
+        if (be <= 0) {
+            be = 1;
+        }
+        options.inSampleSize = be;
+        // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false
+        bitmap = BitmapFactory.decodeFile(imagePath, options);
+        // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象
+        bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height,
+                ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
+        return bitmap;
     }
 
     @Override
@@ -967,6 +1068,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         if (flirOneDevice != null) {
             flirOneDevice.stopFrameStream();
         }
+        Log.i("mpisplayingnn", mp.isPlaying() + " " + mp_strong.isPlaying());
     }
 
     @Override
@@ -983,6 +1085,17 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         Log.e("PreviewActivity", "onStop, stopping discovery!");
         Device.stopDiscovery();
         flirOneDevice = null;
+
+        if(mp.isPlaying()) {
+            mp.stop();
+        }
+
+        Log.i("mpisplaying", mp.isPlaying() + " " + mp_strong.isPlaying());
+
+        if(mp_strong.isPlaying()) {
+            mp_strong.stop();
+        }
+
         super.onStop();
     }
 

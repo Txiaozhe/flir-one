@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <FrameLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerInParent="true">
+
+        <ImageView
+            android:id="@+id/image_view"
+            android:layout_width="fill_parent"
+            android:layout_height="100dp"
+            android:layout_centerVertical="true"
+            android:background="@mipmap/icon_default_bg"
+            android:scaleType="centerCrop" />
+
+        <!--<ImageButton-->
+            <!--android:id="@+id/image_btn"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_gravity="right"-->
+            <!--android:background="@drawable/icon_un_select" />-->
+
+    </FrameLayout>
+</RelativeLayout>

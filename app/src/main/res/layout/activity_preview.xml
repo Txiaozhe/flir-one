@@ -150,6 +150,7 @@
                     android:verticalSpacing="10dp" />
             </LinearLayout>
 
+
             <ImageButton
                 android:id="@+id/imageButton"
                 style="?metaButtonBarButtonStyle"
@@ -185,6 +186,14 @@
                 android:textSize="12sp"
                 android:visibility="gone"/>
 
+            <ImageButton
+                android:id="@+id/showImage"
+                android:layout_gravity="center_horizontal|bottom|right"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="10dp"
+                android:src="@mipmap/nothing" />
 
         </FrameLayout>
 

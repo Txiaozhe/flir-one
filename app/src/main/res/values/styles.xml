@@ -23,4 +23,9 @@
 
     <style name="ButtonBarButton" />
 
+    <style name="pop_window_style">
+        <item name="android:windowEnterAnimation">@anim/pop_window_on</item>
+        <item name="android:windowExitAnimation">@anim/pop_window_off</item>
+    </style>
+
 </resources>
