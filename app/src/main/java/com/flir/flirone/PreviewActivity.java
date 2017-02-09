@@ -2,6 +2,7 @@ package com.flir.flirone;
 
 //主界面
 
+import com.flir.flirone.threshold.ThresholdHelp;
 import com.flir.flirone.util.GridAdapter;
 import com.flir.flirone.util.SystemUiHider;
 
@@ -119,14 +120,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     //播放警告音
     private MediaPlayer mp, mp_strong;
 
-    //下拉列表选择阈值
-    private int threshold_low;
-    private int threshold_high;
-    private Button showDialog;
-    private EditText picker1, picker2;
-
-    private SharedPreferences sp;
-
     //查看图片
     private ImageButton showImage;
 
@@ -135,65 +128,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     private NfcAdapter nfcAdapter;
     private String readResult;
 
-    private void showAddDialog() {
-
-        LayoutInflater factory = LayoutInflater.from(this);
-        final View pickersView = factory.inflate(R.layout.number_pickers, null);
-        picker1 = (EditText) pickersView.findViewById(R.id.picker1);
-        picker2 = (EditText) pickersView.findViewById(R.id.picker2);
-        AlertDialog.Builder ad1 = new AlertDialog.Builder(PreviewActivity.this);
-        ad1.setTitle("设置报警阈值：");
-        ad1.setIcon(android.R.drawable.ic_dialog_info);
-        ad1.setView(pickersView);
-        ad1.setPositiveButton("是", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int i) {
-                boolean exc = false;
-                int low = sp.getInt("low", 20);
-                int high = sp.getInt("high", 40);
-                try {
-                    String lowText = picker1.getText().toString();
-                    String highText = picker2.getText().toString();
-                    low = Integer.parseInt(lowText);
-                    high = Integer.parseInt(highText);
-                } catch (Exception e) {
-                    exc = true;
-                }
-
-
-                //低阈值高于高阈值时
-                if (low >= high || exc) {
-                    final AlertDialog.Builder normalDialog =
-                            new AlertDialog.Builder(PreviewActivity.this);
-                    normalDialog.setIcon(android.R.drawable.ic_dialog_info);
-                    normalDialog.setTitle("警告");
-                    normalDialog.setMessage("您设的阈值不符合规范！请重新设置！");
-                    normalDialog.setPositiveButton("确定",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    //...To-do
-                                }
-                            });
-                    normalDialog.show();
-                } else {
-                    threshold_low = low;
-                    threshold_high = high;
-                    showDialog.setText("设置阈值\n当前：" + threshold_low + ", " + threshold_high);
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putInt("low", low);
-                    editor.putInt("high", high);
-                    editor.commit();
-                }
-            }
-        });
-        ad1.setNegativeButton("否", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int i) {
-
-            }
-        });
-        ad1.show();// 显示对话框
-
-    }
+    //设置阈值
+    private Button showDialog;
+    ThresholdHelp thresholdHelp;
 
     //点击屏幕获取温度
     private FrameLayout showThermal;
@@ -384,9 +321,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     mp = MediaPlayer.create(PreviewActivity.this, R.raw.warn);
                     mp_strong = MediaPlayer.create(PreviewActivity.this, R.raw.warn_strong);
                     if (warnButton.isChecked() == true) {
-                        if (pixelCMax > threshold_low && pixelCMax < threshold_high) {
+                        if (pixelCMax > thresholdHelp.getThreshold_low() && pixelCMax < thresholdHelp.getThreshold_high()) {
                             mp.start();
-                        } else if (pixelCMax > threshold_high) {
+                        } else if (pixelCMax > thresholdHelp.getThreshold_high()) {
                             mp.stop();
                             mp_strong.start();
                         }
@@ -819,24 +756,16 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         });
 
         //阈值
-        sp = getSharedPreferences("threshold", Context.MODE_PRIVATE);
-
-        threshold_low = sp.getInt("low", 20);
-        threshold_high = sp.getInt("high", 40);
-
-        Log.i("low", threshold_low + "");
-        Log.i("high", threshold_high + "");
-
         showDialog = (Button) findViewById(R.id.showDialog);
-        showDialog.setText("设置阈值\n当前：" + threshold_low + ", " + threshold_high);
+        thresholdHelp = new ThresholdHelp(PreviewActivity.this, showDialog);
+        thresholdHelp.setThreshold();
         showDialog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showAddDialog();
-                picker1.setHint(threshold_low + "");
-                picker2.setHint(threshold_high + "");
+                thresholdHelp.showAddDialog();
             }
         });
+
 
 
 //        thermalImageView
