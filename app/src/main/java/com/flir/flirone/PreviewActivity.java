@@ -17,7 +17,11 @@ import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.content.Context;
@@ -66,6 +70,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.net.Socket;
@@ -124,6 +129,11 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //查看图片
     private ImageButton showImage;
+
+    //nfc
+    private TextView nfcTView;
+    private NfcAdapter nfcAdapter;
+    private String readResult;
 
     private void showAddDialog() {
 
@@ -982,7 +992,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         showImage = (ImageButton) findViewById(R.id.showImage);
         String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
         MyImage myImage = getDiskBitmap(path);
-        if(myImage.files.length != 0) {
+        if(myImage.files != null) {
             Log.i("filelength2", myImage.files.length + "");
             Bitmap thumb = getImageThumbnail(myImage.files[myImage.files.length - 1].getPath(), 100, 100);
             showImage.setImageBitmap(thumb);
@@ -995,6 +1005,29 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 startActivity(i);
             }
         });
+
+        //nfc
+        nfcTView=(TextView)findViewById(R.id.show_nfc);
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (nfcAdapter == null) {
+            nfcTView.setText("设备不支持NFC！");
+            return;
+        } else if (nfcAdapter!=null&&!nfcAdapter.isEnabled()) {
+            nfcTView.setText("请在系统设置中先启用NFC功能！");
+            return;
+        } else {
+            nfcTView.setText("BFC可用");
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
+                    readFromTag(getIntent());
+                    nfcTView.setText(readResult);
+                }
+            }
+        }).start();
 
     }
 
@@ -1068,7 +1101,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         if (flirOneDevice != null) {
             flirOneDevice.stopFrameStream();
         }
-        Log.i("mpisplayingnn", mp.isPlaying() + " " + mp_strong.isPlaying());
     }
 
     @Override
@@ -1077,6 +1109,28 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         if (flirOneDevice != null) {
             flirOneDevice.startFrameStream(this);
         }
+
+//        //nfc
+//        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
+//            readFromTag(getIntent());
+//            nfcTView.setText(readResult);
+//        }
+    }
+
+    //读取nfc信息
+    private boolean readFromTag(Intent intent){
+        Parcelable[] rawArray = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+        NdefMessage mNdefMsg = (NdefMessage)rawArray[0];
+        NdefRecord mNdefRecord = mNdefMsg.getRecords()[0];
+        try {
+            if(mNdefRecord != null){
+                readResult = new String(mNdefRecord.getPayload(),"UTF-8");
+                return true;
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        };
+        return false;
     }
 
     @Override
