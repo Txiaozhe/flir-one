@@ -3,14 +3,11 @@ package com.flir.flirone;
 //主界面
 
 import com.flir.flirone.threshold.ThresholdHelp;
-import com.flir.flirone.util.GridAdapter;
 import com.flir.flirone.util.SystemUiHider;
 
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -23,37 +20,24 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.os.Environment;
 import android.os.Parcelable;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.content.Context;
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.GestureDetector;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.NumberPicker;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -67,39 +51,20 @@ import com.flir.flironesdk.SimulatedDevice;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import deveoper.lin.local.picturebrowse.ImageMainActivity;
 
-/**
- * An example activity and delegate for FLIR One image streaming and device interaction.
- * Based on an example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- *
- * @see SystemUiHider
- * @see com.flir.flironesdk.Device.Delegate
- * @see com.flir.flironesdk.FrameProcessor.Delegate
- * @see com.flir.flironesdk.Device.StreamDelegate
- * @see com.flir.flironesdk.Device.PowerUpdateDelegate
- */
 public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate {
     ImageView thermalImageView;
     private volatile boolean imageCaptureRequested = false;
@@ -133,10 +98,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     ThresholdHelp thresholdHelp;
 
     //点击屏幕获取温度
-    private FrameLayout showThermal;
-    private ImageView coordinate_image;
     private float temp;
-    private TextView showTemp;
     private float coordinateX = 100;
     private float coordinateY = 100;
     private float absoluteX;
@@ -147,14 +109,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     private double coordinateTemp;
 
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
-    // Device Delegate methods
 
-    // Called during device discovery, when a device is connected
-    // During this callback, you should save a reference to device
-    // You should also set the power update delegate for the device if you have one
-    // Go ahead and start frame stream as soon as connected, in this use case
-    // Finally we create a frame processor for rendering frames
-
+    //Device.Delegate接口实现的方法，设备已连接
     public void onDeviceConnected(Device device) {
         Log.i("ExampleApp", "Device connected!");
         runOnUiThread(new Runnable() {
@@ -189,10 +145,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         orientationEventListener.enable();
     }
 
-    /**
-     * Indicate to the user that the device has disconnected
-     * 检测是否连接硬件设备
-     */
+    //Device.Delegate接口实现的方法，设备未连接
     public void onDeviceDisconnected(Device device) {
         Log.i("ExampleApp", "Device disconnected!");
 
@@ -213,12 +166,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         orientationEventListener.disable();
     }
 
-    /**
-     * If using RenderedImage.ImageType.ThermalRadiometricKelvinImage, you should not rely on
-     * the accuracy if tuningState is not Device.TuningState.Tuned
-     *
-     * @param tuningState 调节状态改变
-     */
+    //Device.Delegate接口实现的方法，调节状态改变
     public void onTuningStateChanged(Device.TuningState tuningState) {
         Log.i("ExampleApp", "Tuning state changed changed!");
 
@@ -261,8 +209,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         });
     }
 
-    //处理视图
-    // StreamDelegate method
+    //Device.StreamDelegate实现的方法，处理视图
     public void onFrameReceived(Frame frame) {
         Log.v("ExampleApp", "Frame received!");
 
@@ -273,10 +220,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     private Bitmap thermalBitmap = null;
 
-    //获取温度
-    //视图处理器授权方法，将访问每次的frame的产生
-    // Frame Processor Delegate method, will be called each time a rendered frame is produced
-    //这个方法实现了FrameProcessor.Delegate接口,这个方法实时进行扫描
+    //FrameProcessor.Delegate接口实现的方法，的获取温度，视图处理器授权方法，将访问每次的frame的产生，实时进行扫描
     public void onFrameProcessed(final RenderedImage renderedImage) {
         Log.i("onFrameProcessed", "onFrameProcessed");
         if (renderedImage.imageType() == RenderedImage.ImageType.ThermalRadiometricKelvinImage) {
@@ -299,7 +243,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     centerPixelIndex + width + 1
             };
 
-            //////扫描全屏温度并进行高温预警
+            //扫描全屏温度并进行高温预警
             new Thread(new Runnable() {
                 short[] thermalPixels = renderedImage.thermalPixelData();
                 int width = renderedImage.width();
@@ -326,7 +270,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                             mp_strong.start();
                         }
                     }
-                    //Log.i("ischeckeddddd", warnButton.isChecked() + "");
                 }
             }).start();
             //////
@@ -337,9 +280,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 // Remember: all primitives are signed, we want the unsigned value,
                 // we could also use renderedImage.thermalPixelValues() instead
                 int pixelValue = (thermalPixels[centerPixelIndexes[i]]) & 0xffff;
-
-                //Log.i("thermalPixelsXY", thermalPixels[coordinateX] + "");
-
                 averageTemp += (((double) pixelValue) - averageTemp) / ((double) i + 1);
             }
             //Log.i("centerPixelIndex", centerPixelIndexes.length + "");
@@ -349,18 +289,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             numberFormat.setMinimumFractionDigits(2);
             //显示温度
             final String spotMeterValue = numberFormat.format(averageC) + "ºC";
-            //Log.i("averageC", averageTemp + "");
-
-            //获取屏幕对应像素点的温度
-            String where = (absoluteY / 3 - 1) * (absoluteX / 3) + "";
-            int dot = where.indexOf(".");
-            Log.i("where", where.substring(0, dot));
-            try {
-                coordinateTemp = thermalPixels[Integer.parseInt(where.substring(0, dot))];
-                Log.i("temp", (coordinateTemp / 100 - 273.15) + "");
-            } catch (Exception e) {
-
-            }
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -393,9 +321,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             updateThermalImageView(thermalBitmap);
         }
 
-        /*
-        Capture this image if requested.
-        */
+
+        //捕获图像
         if (this.imageCaptureRequested) {
             imageCaptureRequested = false;
             final Context context = this;
@@ -404,10 +331,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
                     Log.i("lastSavedPath", "Storage:" + path);
 
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ssZ", Locale.getDefault());
-                    String formatedDate = sdf.format(new Date());
                     String fileName = "FLIROne" + getFileName() + ".jpg";
-                    //String fileName = "FLIROne" + formatedDate + ".jpg";
                     try {
                         lastSavedPath = path + "/" + fileName;
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
@@ -501,7 +425,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
      */
-    private static final boolean AUTO_HIDE = true;
+    private static final boolean AUTO_HIDE = false;
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
@@ -525,7 +449,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
      */
     private SystemUiHider mSystemUiHider;
 
-    //拍照
+    //捕获图像单击事件
     public void onCaptureImageClicked(View v) {
 
         // if nothing's connected, let's load an image instead?
@@ -562,85 +486,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         }
     }
 
-    //旋转视图，旋转按钮
-    public void onRotateClicked(View v) {
-        ToggleButton theSwitch = (ToggleButton) v;
-        if (theSwitch.isChecked()) {
-            thermalImageView.setRotation(180); //旋转180度
-        } else {
-            thermalImageView.setRotation(0);
-        }
-    }
-
-
     public void onPaletteListViewClicked(View v) {
         RenderedImage.Palette pal = (RenderedImage.Palette) (((ListView) v).getSelectedItem());
         frameProcessor.setImagePalette(pal);
-    }
-
-    /**
-     * Example method of starting/stopping a frame stream to a host
-     * Socket服务，视图上的Socket按钮
-     *
-     * @param v The toggle button pushed
-     */
-    public void onNetStreamClicked(View v) {
-        final ToggleButton button = (ToggleButton) v;
-        button.setChecked(false);
-
-        if (streamSocket == null || streamSocket.isClosed()) {
-            AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
-            alert.setTitle("Start Network Stream");
-            alert.setMessage("Provide hostname:port to connect");
-
-            // Set an EditText view to get user input
-            final EditText input = new EditText(this);
-
-            alert.setView(input);
-
-            alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    String value = input.getText().toString();
-                    final String[] parts = value.split(":");
-                    (new Thread() {
-                        @Override
-                        public void run() {
-                            super.run();
-                            try {
-                                streamSocket = new Socket(parts[0], Integer.parseInt(parts[1], 10));
-                                runOnUiThread(new Thread() {
-                                    @Override
-                                    public void run() {
-                                        super.run();
-                                        button.setChecked(streamSocket.isConnected());
-                                    }
-                                });
-
-                            } catch (Exception ex) {
-                                Log.e("CONNECT", ex.getMessage());
-                            }
-                        }
-                    }).start();
-
-                }
-            });
-
-            alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    // Canceled.
-                }
-            });
-
-            alert.show();
-        } else {
-            try {
-                streamSocket.close();
-            } catch (Exception ex) {
-
-            }
-            button.setChecked(streamSocket != null && streamSocket.isConnected());
-        }
     }
 
     //热成像主界面
@@ -674,8 +522,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         setContentView(R.layout.activity_preview);
 
         //获取三块视图
-        final View controlsView = findViewById(R.id.fullscreen_content_controls);
-        final View controlsViewTop = findViewById(R.id.fullscreen_content_controls_top);
         final View contentView = findViewById(R.id.fullscreen_content);
 
         //是否开启警报
@@ -703,19 +549,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 thresholdHelp.showAddDialog();
             }
         });
-
-
-
-//        thermalImageView
-
-        //初始化点击屏幕获取温度值组件
-        showThermal = (FrameLayout) findViewById(R.id.showThermal);
-        showThermal.setX(150);
-        showThermal.setY(150);
-        showTemp = (TextView) findViewById(R.id.showTemp);
-        showTemp.setText(coordinateTemp + "℃");
-        coordinate_image = (ImageView) findViewById(R.id.coordinate_image);
-
 
         //设置默认滤镜
         RenderedImage.ImageType defaultImageType = RenderedImage.ImageType.BlendedMSXRGBA8888Image;
@@ -765,33 +598,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 Log.d("ZOOM", "zoom ongoing, scale: " + detector.getScaleFactor());
                 frameProcessor.setMSXDistance(detector.getScaleFactor());
                 return false;
-            }
-        });
-
-        //点击坐标获得温度值
-        findViewById(R.id.fullscreen_content).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                mScaleDetector.onTouchEvent(event);
-                Log.i("eventx-y", event.getX() + ", " + event.getY());
-                coordinateX = event.getX();
-                coordinateY = event.getY();
-                if (coordinateY < 160) {
-                    coordinateY = 160;
-                } else if (coordinateY > 1120) {
-                    coordinateY = 1120;
-                }
-                Log.i("width&height", width + ", " + height);
-
-                absoluteX = coordinateX - coordinate_image.getWidth() / 2;
-                absoluteY = coordinateY - coordinate_image.getHeight() / 2;
-
-                showThermal.setX(absoluteX);
-                showThermal.setY(absoluteY);
-
-                //thermalPixels 温度扫描结果产生的数组
-                showTemp.setText(coordinateX + ", " + coordinateY);
-                return true;
             }
         });
 

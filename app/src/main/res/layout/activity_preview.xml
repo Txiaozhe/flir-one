@@ -74,32 +74,6 @@
                 android:text="Cable"
                 android:visibility="gone" />
 
-            <ToggleButton
-                android:id="@+id/streamButton"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:enabled="false"
-                android:onClick="onNetStreamClicked"
-                android:textOff="@string/startNetStream_cn"
-                android:textOn="@string/stopNetStream_cn"
-                android:textSize="12sp"
-                android:visibility="gone"/>
-
-            <ToggleButton
-                android:id="@+id/switch_rotate"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="47dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right|start"
-                android:onClick="onRotateClicked"
-                android:text="@string/rotate_on_cn"
-                android:textOff="@string/rotate_off_cn"
-                android:textOn="@string/rotate_on_cn"
-                android:visibility="gone"/>
-
-
         </LinearLayout>
 
         <FrameLayout
@@ -169,47 +143,6 @@
 
     </FrameLayout>
 
-    <FrameLayout
-        android:id="@+id/showThermal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:layout_marginLeft="100dp"
-        android:visibility="gone">
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <FrameLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <ImageView
-                    android:id="@+id/coordinate_image"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@mipmap/coordinate"
-                    />
-            </FrameLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"/>
-                <TextView
-                    android:id="@+id/showTemp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="35.8C"
-                    android:textColor="#ffffff"
-                    android:textSize="18sp"/>
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </FrameLayout>
 
     <ImageView
         android:id="@+id/spotMeterIcon"
