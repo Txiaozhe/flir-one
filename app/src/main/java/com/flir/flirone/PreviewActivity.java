@@ -182,7 +182,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 public void run() {
                     chargeCableButton.setChecked(chargeCableIsConnected);
                     chargeCableButton.setVisibility(View.INVISIBLE);
-                    findViewById(R.id.connect_sim_button).setEnabled(false);
                 }
             });
         }
@@ -208,7 +207,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 thermalImageView.clearColorFilter();
                 findViewById(R.id.tuningProgressBar).setVisibility(View.GONE);
                 findViewById(R.id.tuningTextView).setVisibility(View.GONE);
-                findViewById(R.id.connect_sim_button).setEnabled(true);
             }
         });
         flirOneDevice = null;
@@ -556,27 +554,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         return fileName;
     }
 
-
-    /**
-     * 连接硬件
-     *
-     * @param v
-     */
-    public void onConnectSimClicked(View v) {
-        if (flirOneDevice == null) {
-            try {
-                flirOneDevice = new SimulatedDevice(this, this, getResources().openRawResource(R.raw.sampleframes), 10);
-                chargeCableIsConnected = true;
-            } catch (Exception ex) {
-                flirOneDevice = null;
-                Log.w("FLIROneExampleApp", "IO EXCEPTION");
-                ex.printStackTrace();
-            }
-        } else if (flirOneDevice instanceof SimulatedDevice) {
-            flirOneDevice.close();
-            flirOneDevice = null;
-        }
-    }
 
     public void onSimulatedChargeCableToggleClicked(View v) {
         if (flirOneDevice instanceof SimulatedDevice) {

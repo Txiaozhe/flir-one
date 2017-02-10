@@ -73,7 +73,6 @@ public class DeviceIsConnected implements Device.StreamDelegate, Device.Delegate
                 public void run() {
                     chargeCableButton.setChecked(chargeIsC);
                     chargeCableButton.setVisibility(View.INVISIBLE);
-                    view.findViewById(R.id.connect_sim_button).setEnabled(false);
                 }
             });
         }
@@ -96,7 +95,6 @@ public class DeviceIsConnected implements Device.StreamDelegate, Device.Delegate
                 thermalImageView.clearColorFilter();
                 view.findViewById(R.id.tuningProgressBar).setVisibility(View.GONE);
                 view.findViewById(R.id.tuningTextView).setVisibility(View.GONE);
-                view.findViewById(R.id.connect_sim_button).setEnabled(true);
             }
         });
         oe.disable();

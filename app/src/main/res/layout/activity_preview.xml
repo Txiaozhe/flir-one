@@ -124,16 +124,7 @@
                 android:onClick="onCaptureImageClicked"
                 android:src="@android:drawable/ic_menu_camera" />
 
-            <Button
-                android:id="@+id/connect_sim_button"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|bottom|right"
-                android:onClick="onConnectSimClicked"
-                android:text="@string/connectSim_cn"
-                android:textSize="12sp"
-                android:visibility="gone"/>
+
 
             <ImageButton
                 android:id="@+id/showImage"
