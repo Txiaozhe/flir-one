@@ -87,16 +87,6 @@
                 android:textSize="12sp"
                 android:visibility="gone"/>
 
-            <Button
-                android:id="@+id/tuneButton"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:onClick="onTuneClicked"
-                android:text="@string/performTuning_cn"
-                android:visibility="gone"/>
-
             <ToggleButton
                 android:id="@+id/switch_rotate"
                 style="?metaButtonBarButtonStyle"

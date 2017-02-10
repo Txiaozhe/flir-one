@@ -527,14 +527,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
      */
     private SystemUiHider mSystemUiHider;
 
-    //tune按钮，调整或要求高的热精度
-    public void onTuneClicked(View v) {
-        if (flirOneDevice != null) {
-            flirOneDevice.performTuning();
-        }
-
-    }
-
     //拍照
     public void onCaptureImageClicked(View v) {
 
