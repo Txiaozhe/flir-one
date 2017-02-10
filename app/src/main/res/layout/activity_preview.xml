@@ -123,40 +123,6 @@
             android:rowCount="2"
             tools:ignore="UselessParent">
 
-            <LinearLayout
-                android:id="@+id/imageTypeListContainer"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|bottom"
-                android:baselineAligned="false"
-                android:focusableInTouchMode="false"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <ListView
-                    android:id="@+id/paletteListView"
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|right"
-                    android:layout_marginBottom="60dp"
-                    android:alpha="0.9"
-                    android:choiceMode="singleChoice"
-                    android:clickable="true"
-                    android:dividerHeight="0dp"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
-
-                <GridView
-                    android:id="@+id/paletteGridView"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.0"
-                    android:columnWidth="80dp"
-                    android:horizontalSpacing="10dp"
-                    android:numColumns="3"
-                    android:stretchMode="columnWidth"
-                    android:verticalSpacing="10dp" />
-            </LinearLayout>
-
 
             <ImageButton
                 android:id="@+id/imageButton"
@@ -167,20 +133,6 @@
                 android:layout_weight="0.33"
                 android:onClick="onCaptureImageClicked"
                 android:src="@android:drawable/ic_menu_camera" />
-
-            <ToggleButton
-                android:id="@+id/change_view_button"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|left"
-                android:layout_weight="0.33"
-                android:enabled="false"
-                android:onClick="onChangeViewClicked"
-                android:textOff="@string/change_view_cn"
-                android:textOn="@string/change_view_retract_cn"
-                android:textSize="12sp"
-                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/connect_sim_button"

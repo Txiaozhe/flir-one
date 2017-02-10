@@ -603,37 +603,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         }
     }
 
-    //打开、关闭滤镜视图
-    public void onChangeViewClicked(View v) {
-        if (frameProcessor == null) {
-            ((ToggleButton) v).setChecked(false);
-            return;
-        }
-        ListView paletteListView = (ListView) findViewById(R.id.paletteListView);
-        if (((ToggleButton) v).isChecked()) {
-            // only show palette list if selected image type is colorized
-            paletteListView.setVisibility(View.INVISIBLE);
-            for (RenderedImage.ImageType imageType : frameProcessor.getImageTypes()) {
-                if (imageType.isColorized()) {
-                    paletteListView.setVisibility(View.VISIBLE);
-                    break;
-                }
-            }
-            findViewById(R.id.imageTypeListContainer).setVisibility(View.VISIBLE);
-        } else {
-            findViewById(R.id.imageTypeListContainer).setVisibility(View.GONE);
-        }
-
-
-    }
-
-    public void onImageTypeListViewClicked(View v) {
-        int index = ((ListView) v).getSelectedItemPosition();
-        RenderedImage.ImageType imageType = RenderedImage.ImageType.values()[index];
-        frameProcessor.setImageTypes(EnumSet.of(imageType, RenderedImage.ImageType.ThermalRadiometricKelvinImage));
-        int paletteVisibility = (imageType.isColorized()) ? View.VISIBLE : View.GONE;
-        findViewById(R.id.paletteListView).setVisibility(paletteVisibility);
-    }
 
     public void onPaletteListViewClicked(View v) {
         RenderedImage.Palette pal = (RenderedImage.Palette) (((ListView) v).getSelectedItem());
@@ -779,68 +748,10 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         coordinate_image = (ImageView) findViewById(R.id.coordinate_image);
 
 
-        //滤镜
-        HashMap<Integer, String> imageTypeNames = new HashMap<>();
-        // Massage the type names for display purposes and skip any deprecated
-        for (Field field : RenderedImage.ImageType.class.getDeclaredFields()) {
-            if (field.isEnumConstant() && !field.isAnnotationPresent(Deprecated.class)) {
-                RenderedImage.ImageType t = RenderedImage.ImageType.valueOf(field.getName());
-                String name = t.name().replaceAll("(RGBA)|(YCbCr)|(8)", "").replaceAll("([a-z])([A-Z])", "$1 $2");
-                //name取值
-                /**
-                 Blended MSXImage
-                 Thermal Linear Flux14Bit Image
-                 Thermal Image
-                 Thermal Radiometric Kelvin Image
-                 Visible Aligned Image
-                 Visible Unaligned YUVImage
-                 */
-                imageTypeNames.put(t.ordinal(), name);
-            }
-        }
-        String[] imageTypeNameValues = new String[imageTypeNames.size()]; //String[6]
-        for (Map.Entry<Integer, String> mapEntry : imageTypeNames.entrySet()) {
-            int index = mapEntry.getKey();
-            imageTypeNameValues[index] = mapEntry.getValue();
-        }
-
+        //设置默认滤镜
         RenderedImage.ImageType defaultImageType = RenderedImage.ImageType.BlendedMSXRGBA8888Image;
         frameProcessor = new FrameProcessor(this, this, EnumSet.of(defaultImageType, RenderedImage.ImageType.ThermalRadiometricKelvinImage));
 
-        String[] tag = {"aaa", "aaa", "aaa", "aaa", "aaa", "aaa", "aaa", "aaa", "aaa"};
-        String[] tags = new String[RenderedImage.Palette.values().length];// = RenderedImage.Palette.values();
-
-        for (int i = 0; i < RenderedImage.Palette.values().length; i++) {
-            tags[i] = RenderedImage.Palette.values()[i].toString();
-        }
-
-        //滤镜
-        GridView paletteGridView = (GridView) this.findViewById(R.id.paletteGridView);
-        paletteGridView.setAdapter(new GridAdapter(this, tag, tags));
-        paletteGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                if (frameProcessor != null) {
-                    frameProcessor.setImagePalette(RenderedImage.Palette.values()[position]);
-                }
-            }
-        });
-
-        Log.i("RenderedImage2221212", RenderedImage.Palette.values()[0].toString());
-        /// 滤镜列表
-        ListView paletteListView = ((ListView) findViewById(R.id.paletteListView));
-        paletteListView.setDivider(null);
-        paletteListView.setAdapter(new ArrayAdapter<>(this, R.layout.emptytextview, RenderedImage.Palette.values()));
-        paletteListView.setSelection(frameProcessor.getImagePalette().ordinal());
-        paletteListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (frameProcessor != null) {
-                    frameProcessor.setImagePalette(RenderedImage.Palette.values()[position]);
-                }
-            }
-        });
         // Set up an instance of SystemUiHider to control the system UI for
         // this activity.
 
@@ -863,8 +774,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        //滤镜按钮
-        findViewById(R.id.change_view_button).setOnTouchListener(mDelayHideTouchListener);
 
         orientationEventListener = new OrientationEventListener(this) {
             @Override
