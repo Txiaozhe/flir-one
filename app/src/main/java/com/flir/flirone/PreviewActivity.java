@@ -1,16 +1,19 @@
 package com.flir.flirone;
 
 //主界面
+import com.flir.flirone.dbhelper.DBManager;
+import com.flir.flirone.imagehelp.ImageHelp;
+import com.flir.flirone.imagehelp.MyImage;
 import com.flir.flirone.threshold.ThresholdHelp;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
+import android.database.Cursor;
+import android.database.CursorWrapper;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.os.Environment;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.content.Context;
 import android.app.Activity;
@@ -25,6 +28,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -46,10 +50,12 @@ import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
-
-import developer.lin.local.picturebrowse.ImageMainActivity;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate {
     ImageView thermalImageView;
@@ -73,6 +79,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //查看图片
     private ImageButton showImage;
+    private ImageHelp imageHelp;
 
     //设置阈值
     private Button showDialog;
@@ -86,9 +93,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     //nfc
     private TextView showNfcResult;
     private String nfc_result;
-
-    //图片存储路径
-    private static final String IMAGE_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
 
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
 
@@ -310,35 +314,27 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             final Context context = this;
             new Thread(new Runnable() {
                 public void run() {
-                    Log.i("lastSavedPath", "Storage:" + IMAGE_PATH);
+                    Log.i("lastSavedPath", "Storage:" + GlobalParameter.IMAGE_PATH);
 
                     String fileName = nfc_result.substring(1) + "-" + getFileName() + ".jpg";
                     Log.i("nfcfilename", fileName);
                     try {
-                        lastSavedPath = IMAGE_PATH + "/" + fileName;
+                        lastSavedPath = GlobalParameter.IMAGE_PATH + "/" + fileName;
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
 
-                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(IMAGE_PATH)));
+                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(GlobalParameter.IMAGE_PATH)));
                         Log.i("lastSavedPath", lastSavedPath);
 
                         MediaScannerConnection.scanFile(context,
-                                new String[]{IMAGE_PATH + "/" + fileName}, null,
+                                new String[]{GlobalParameter.IMAGE_PATH + "/" + fileName}, null,
                                 new MediaScannerConnection.OnScanCompletedListener() {
                                     @Override
                                     public void onScanCompleted(String path, Uri uri) {
-                                        Log.i("lastSavedPath", "Scanned " + IMAGE_PATH + ":");
+                                        Log.i("lastSavedPath", "Scanned " + GlobalParameter.IMAGE_PATH + ":");
                                         Log.i("lastSavedPath", "-> uri=" + uri);
                                     }
 
                                 });
-
-                        MyImage myImage = getDiskBitmap(IMAGE_PATH);
-                        Log.i("filelength1", myImage.files.length + "");
-                        if(myImage.files.length != 0) {
-                            Bitmap thumb = getImageThumbnail(myImage.files[myImage.files.length - 1].getPath(), 100, 100);
-                            showImage.setImageBitmap(thumb);
-                            Log.i("iconimage", myImage.files[0].toString());
-                        }
 
                     } catch (Exception e) {
                         Log.e("Exp", e.toString());
@@ -417,6 +413,16 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             onFrameReceived(frame);
         } else {
             this.imageCaptureRequested = true;
+
+            try{
+                File[] files = imageHelp.getFiles();
+                if(files != null && files.length >= 1) {
+                    Bitmap thumb = imageHelp.getImageThumbnail(files[files.length - 1].getPath(), 100, 100);
+                    showImage.setImageBitmap(thumb);
+                }
+            } catch (Exception e) {
+
+            }
         }
 
     }
@@ -430,7 +436,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         String fileName = time;
         return fileName;
     }
-
 
     public void onSimulatedChargeCableToggleClicked(View v) {
         if (flirOneDevice instanceof SimulatedDevice) {
@@ -468,14 +473,18 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     ScaleGestureDetector mScaleDetector;
 
+    private DBManager dbManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_preview);
 
-        //获取三块视图
-        final View contentView = findViewById(R.id.fullscreen_content);
+        //sqlite
+        dbManager = new DBManager(this);
+        operateSQLite();
+        query();
 
         //是否开启警报
         warnButton = (ToggleButton) findViewById(R.id.warnButton);
@@ -531,23 +540,27 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         });
 
-        //点击查看所有图片
+        //查看所有图片按钮设置缩略图
         showImage = (ImageButton) findViewById(R.id.showImage);
-        MyImage myImage = getDiskBitmap(IMAGE_PATH);
-        if(myImage.files != null && myImage.files.length >= 1) {
-            Log.i("filelength2", myImage.files.length + "");
-            Bitmap thumb = getImageThumbnail(myImage.files[myImage.files.length - 1].getPath(), 100, 100);
-            showImage.setImageBitmap(thumb);
-            Log.i("iconimage", myImage.files[myImage.files.length - 1].toString());
+        imageHelp = new ImageHelp(GlobalParameter.IMAGE_PATH);
+        try{
+            File[] files = imageHelp.getFiles();
+            if(files != null && files.length >= 1) {
+                Bitmap thumb = imageHelp.getImageThumbnail(files[files.length - 1].getPath(), 100, 100);
+                showImage.setImageBitmap(thumb);
+            }
+        } catch (Exception e) {
+
         }
+
+        //点击查看所有图片按钮进入图片展示页面
         showImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(PreviewActivity.this, ImageMainActivity.class);
+                Intent i = new Intent(PreviewActivity.this, ImageListActivity.class);
                 startActivity(i);
             }
         });
-
 
         //获取nfc 数据
         showNfcResult = (TextView) findViewById(R.id.show_nfc_result);
@@ -560,69 +573,55 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         }
     }
 
-    class MyImage {
-        Bitmap bitmap;
-        File[] files;
+    //sqlite
+    private void operateSQLite() {
+        ArrayList<MyImage> images = new ArrayList<MyImage>();
+
+        MyImage image = new MyImage("dhedhe.jpg", "/pictures", "jpg", "1.1MB", "2017-02-12", "90℃", "90", "76", "88");
+        images.add(image);
+        dbManager.add(images);
     }
 
-    //获取本地图片
-    private MyImage getDiskBitmap(String pathString) {
+    public void update() {
         MyImage myImage = new MyImage();
-
-        Bitmap bitmap = null;
-        File[] files;
-        try {
-            File file = new File(pathString);
-            files = file.listFiles();
-            for(int i = 0; i < files.length; i++) {
-                Log.i("filessssss", files[i].getName());
-            }
-            if (file.exists()) {
-                bitmap = BitmapFactory.decodeFile(pathString);
-
-            }
-
-            myImage.bitmap = bitmap;
-            myImage.files = files;
-
-        } catch (Exception e) {
-            // TODO: handle exception
-            Log.i("filessssss", e.toString());
-        }
-
-        return myImage;
+        myImage.setName("Jane");
+        dbManager.updateAge(myImage);
     }
 
-    //获取缩略图
-    private Bitmap getImageThumbnail(String imagePath, int width, int height) {
-        Bitmap bitmap = null;
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        // 获取这个图片的宽和高，注意此处的bitmap为null
-        bitmap = BitmapFactory.decodeFile(imagePath, options);
-        options.inJustDecodeBounds = false; // 设为 false
-        // 计算缩放比
-        int h = options.outHeight;
-        int w = options.outWidth;
-        int beWidth = w / width;
-        int beHeight = h / height;
-        int be = 1;
-        if (beWidth < beHeight) {
-            be = beWidth;
-        } else {
-            be = beHeight;
-        }
-        if (be <= 0) {
-            be = 1;
-        }
-        options.inSampleSize = be;
-        // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false
-        bitmap = BitmapFactory.decodeFile(imagePath, options);
-        // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象
-        bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height,
-                ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
-        return bitmap;
+    public void delete() {
+        MyImage myImage = new MyImage();
+        //设置删除条件
+        dbManager.deleteOldPerson(myImage);
     }
+
+    public void query() {
+        List<MyImage> myImages = dbManager.query();
+        ArrayList<Map<String, String>> list = new ArrayList<Map<String, String>>();
+        for (MyImage myImage : myImages) {
+            HashMap<String, String> map = new HashMap<String, String>();
+            map.put("name", myImage.getName());
+            map.put("path", myImage.getPath());
+            list.add(map);
+            Log.i("sqlitequery", myImage.getName());
+        }
+    }
+
+    public void queryTheCursor() {
+        Cursor c = dbManager.queryTheCursor();
+        startManagingCursor(c); //托付给activity根据自己的生命周期去管理Cursor的生命周期
+        CursorWrapper cursorWrapper = new CursorWrapper(c) {
+            @Override
+            public String getString(int columnIndex) {
+                //将简介前加上年龄
+                if (getColumnName(columnIndex).equals("name")) {
+                    String path = getString(getColumnIndex("path"));
+                    return path;
+                }
+                return super.getString(columnIndex);
+            }
+        };
+    }
+    //sqlite
 
     @Override
     public void onPause() {
@@ -662,5 +661,12 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         }
 
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //sqlite
+        dbManager.closeDB();
     }
 }

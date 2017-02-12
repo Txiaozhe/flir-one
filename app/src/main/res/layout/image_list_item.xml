@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/list_item_image"
+        android:layout_width="80dp"
+        android:layout_height="55dp"
+        android:src="@mipmap/ic_launcher"
+        android:layout_margin="5dp"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1.0"
+        android:layout_marginLeft="5dp"
+        android:orientation="vertical"
+        android:layout_gravity="center">
+
+        <TextView
+            android:id="@+id/list_item_image_name"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_marginTop="5dp"
+            android:text="asdfghjklnnnnnnnnnnnnnnn.jpg"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.0"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal"
+            android:layout_gravity="center">
+
+            <TextView
+                android:id="@+id/list_item_image_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2017-2-12 15:33:13"/>
+
+            <TextView
+                android:id="@+id/list_item_image_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="1.1MB"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
