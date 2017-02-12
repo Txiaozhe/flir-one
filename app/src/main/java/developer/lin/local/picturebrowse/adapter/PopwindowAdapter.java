@@ -1,4 +1,4 @@
-package deveoper.lin.local.picturebrowse.adapter;
+package developer.lin.local.picturebrowse.adapter;
 
 import android.content.Context;
 import android.view.View;
@@ -11,8 +11,8 @@ import com.flir.flirone.R;
 import java.util.ArrayList;
 
 import butterknife.ButterKnife;
-import deveoper.lin.local.picturebrowse.entity.PictureFolderEntity;
-import deveoper.lin.local.picturebrowse.util.ImageLoader;
+import developer.lin.local.picturebrowse.entity.PictureFolderEntity;
+import developer.lin.local.picturebrowse.util.ImageLoader;
 
 /**
  * Created by lin on 2015/10/27.

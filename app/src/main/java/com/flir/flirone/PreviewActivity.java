@@ -1,12 +1,7 @@
 package com.flir.flirone;
 
 //主界面
-
 import com.flir.flirone.threshold.ThresholdHelp;
-import com.flir.flirone.util.SystemUiHider;
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -15,25 +10,18 @@ import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
-import android.nfc.NfcAdapter;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.util.Log;
 import android.content.Context;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -53,7 +41,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
@@ -61,9 +48,8 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.Locale;
 
-import deveoper.lin.local.picturebrowse.ImageMainActivity;
+import developer.lin.local.picturebrowse.ImageMainActivity;
 
 public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate {
     ImageView thermalImageView;
@@ -88,25 +74,21 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     //查看图片
     private ImageButton showImage;
 
-    //nfc
-    private TextView nfcTView;
-    private NfcAdapter nfcAdapter;
-    private String readResult;
-
     //设置阈值
     private Button showDialog;
     ThresholdHelp thresholdHelp;
 
     //点击屏幕获取温度
-    private float temp;
-    private float coordinateX = 100;
-    private float coordinateY = 100;
-    private float absoluteX;
-    private float absoluteY;
     private int width;
     private int height;
     private short[] thermalPixels;
-    private double coordinateTemp;
+
+    //nfc
+    private TextView showNfcResult;
+    private String nfc_result;
+
+    //图片存储路径
+    private static final String IMAGE_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
 
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
 
@@ -328,29 +310,29 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             final Context context = this;
             new Thread(new Runnable() {
                 public void run() {
-                    String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-                    Log.i("lastSavedPath", "Storage:" + path);
+                    Log.i("lastSavedPath", "Storage:" + IMAGE_PATH);
 
-                    String fileName = "FLIROne" + getFileName() + ".jpg";
+                    String fileName = nfc_result.substring(1) + "-" + getFileName() + ".jpg";
+                    Log.i("nfcfilename", fileName);
                     try {
-                        lastSavedPath = path + "/" + fileName;
+                        lastSavedPath = IMAGE_PATH + "/" + fileName;
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
 
-                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(path)));
+                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(IMAGE_PATH)));
                         Log.i("lastSavedPath", lastSavedPath);
 
                         MediaScannerConnection.scanFile(context,
-                                new String[]{path + "/" + fileName}, null,
+                                new String[]{IMAGE_PATH + "/" + fileName}, null,
                                 new MediaScannerConnection.OnScanCompletedListener() {
                                     @Override
                                     public void onScanCompleted(String path, Uri uri) {
-                                        Log.i("lastSavedPath", "Scanned " + path + ":");
+                                        Log.i("lastSavedPath", "Scanned " + IMAGE_PATH + ":");
                                         Log.i("lastSavedPath", "-> uri=" + uri);
                                     }
 
                                 });
 
-                        MyImage myImage = getDiskBitmap(path);
+                        MyImage myImage = getDiskBitmap(IMAGE_PATH);
                         Log.i("filelength1", myImage.files.length + "");
                         if(myImage.files.length != 0) {
                             Bitmap thumb = getImageThumbnail(myImage.files[myImage.files.length - 1].getPath(), 100, 100);
@@ -445,7 +427,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         String time = format.format(date);
         int suffix = (int) (Math.random() * (9999 - 1000 + 1)) + 1000;
-        String fileName = time + suffix;
+        String fileName = time;
         return fileName;
     }
 
@@ -525,10 +507,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         RenderedImage.ImageType defaultImageType = RenderedImage.ImageType.BlendedMSXRGBA8888Image;
         frameProcessor = new FrameProcessor(this, this, EnumSet.of(defaultImageType, RenderedImage.ImageType.ThermalRadiometricKelvinImage));
 
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
-
         orientationEventListener = new OrientationEventListener(this) {
             @Override
             public void onOrientationChanged(int orientation) {
@@ -555,9 +533,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
         //点击查看所有图片
         showImage = (ImageButton) findViewById(R.id.showImage);
-        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-        MyImage myImage = getDiskBitmap(path);
-        if(myImage.files != null) {
+        MyImage myImage = getDiskBitmap(IMAGE_PATH);
+        if(myImage.files != null && myImage.files.length >= 1) {
             Log.i("filelength2", myImage.files.length + "");
             Bitmap thumb = getImageThumbnail(myImage.files[myImage.files.length - 1].getPath(), 100, 100);
             showImage.setImageBitmap(thumb);
@@ -571,29 +548,16 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         });
 
-        //nfc
-        nfcTView=(TextView)findViewById(R.id.show_nfc);
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        if (nfcAdapter == null) {
-            nfcTView.setText("设备不支持NFC！");
-            return;
-        } else if (nfcAdapter!=null&&!nfcAdapter.isEnabled()) {
-            nfcTView.setText("请在系统设置中先启用NFC功能！");
-            return;
-        } else {
-            nfcTView.setText("BFC可用");
-        }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
-                    readFromTag(getIntent());
-                    nfcTView.setText(readResult);
-                }
+        //获取nfc 数据
+        showNfcResult = (TextView) findViewById(R.id.show_nfc_result);
+        if(getIntent() != null) {
+            nfc_result = getIntent().getStringExtra("nfcresult");
+            if(nfc_result == null) {
+                nfc_result = "NNFC未识别";
             }
-        }).start();
-
+            showNfcResult.setText("当前车厢号：\n" + nfc_result.substring(1));
+        }
     }
 
     class MyImage {
@@ -664,38 +628,20 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     public void onPause() {
         super.onPause();
         if (flirOneDevice != null) {
-            flirOneDevice.stopFrameStream();
+//            flirOneDevice.stopFrameStream();
         }
+        Log.i("activity_info", "pause");
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
         if (flirOneDevice != null) {
             flirOneDevice.startFrameStream(this);
         }
 
-//        //nfc
-//        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
-//            readFromTag(getIntent());
-//            nfcTView.setText(readResult);
-//        }
-    }
-
-    //读取nfc信息
-    private boolean readFromTag(Intent intent){
-        Parcelable[] rawArray = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-        NdefMessage mNdefMsg = (NdefMessage)rawArray[0];
-        NdefRecord mNdefRecord = mNdefMsg.getRecords()[0];
-        try {
-            if(mNdefRecord != null){
-                readResult = new String(mNdefRecord.getPayload(),"UTF-8");
-                return true;
-            }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        };
-        return false;
+        Log.i("activity_info", "resume");
     }
 
     @Override
@@ -716,10 +662,5 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         }
 
         super.onStop();
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
     }
 }

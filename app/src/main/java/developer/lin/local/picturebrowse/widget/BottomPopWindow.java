@@ -1,4 +1,4 @@
-package deveoper.lin.local.picturebrowse.widget;
+package developer.lin.local.picturebrowse.widget;
 
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
@@ -16,8 +16,8 @@ import com.flir.flirone.R;
 import java.util.ArrayList;
 
 import butterknife.ButterKnife;
-import deveoper.lin.local.picturebrowse.adapter.PopwindowAdapter;
-import deveoper.lin.local.picturebrowse.entity.PictureFolderEntity;
+import developer.lin.local.picturebrowse.adapter.PopwindowAdapter;
+import developer.lin.local.picturebrowse.entity.PictureFolderEntity;
 
 /**
  * Created by lin on 2015/10/27.

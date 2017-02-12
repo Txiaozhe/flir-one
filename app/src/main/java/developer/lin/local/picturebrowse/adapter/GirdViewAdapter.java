@@ -1,4 +1,4 @@
-package deveoper.lin.local.picturebrowse.adapter;
+package developer.lin.local.picturebrowse.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,9 +12,9 @@ import com.flir.flirone.R;
 import java.util.ArrayList;
 
 import butterknife.ButterKnife;
-import deveoper.lin.local.picturebrowse.ShowImageActivity;
-import deveoper.lin.local.picturebrowse.entity.GirdViewEntity;
-import deveoper.lin.local.picturebrowse.util.ImageLoader;
+import developer.lin.local.picturebrowse.ShowImageActivity;
+import developer.lin.local.picturebrowse.entity.GirdViewEntity;
+import developer.lin.local.picturebrowse.util.ImageLoader;
 
 import static java.security.AccessController.getContext;
 

@@ -28,11 +28,11 @@
     <string name="openWarn">打开高温警告\n已关闭</string>
     <string name="closeWarn">关闭高温警告\n已开启</string>
 
-    <string name="Please_Connect_FLIR_One" >请连接一个FLIR One设备</string>
+    <string name="Please_Connect_FLIR_One">请连接一个FLIR One设备</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="load">加载中...</string>
     <string name="no_photo">抱歉，没有发现图片</string>
-    <string name="start">图片浏览器</string>
+    <string name="start">图片浏览器(单击刷新图片库)</string>
 </resources>

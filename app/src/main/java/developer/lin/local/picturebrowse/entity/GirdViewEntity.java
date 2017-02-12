@@ -1,4 +1,4 @@
-package deveoper.lin.local.picturebrowse.entity;
+package developer.lin.local.picturebrowse.entity;
 
 import java.io.Serializable;
 

@@ -1,4 +1,4 @@
-package deveoper.lin.local.picturebrowse.adapter;
+package developer.lin.local.picturebrowse.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;

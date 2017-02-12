@@ -1,4 +1,4 @@
-package deveoper.lin.local.picturebrowse;
+package developer.lin.local.picturebrowse;
 
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
@@ -34,18 +34,15 @@ import butterknife.ButterKnife;
 import de.greenrobot.event.EventBus;
 import de.greenrobot.event.Subscribe;
 import de.greenrobot.event.ThreadMode;
-import deveoper.lin.local.picturebrowse.adapter.GirdViewAdapter;
-import deveoper.lin.local.picturebrowse.entity.GirdViewEntity;
-import deveoper.lin.local.picturebrowse.entity.PictureEntity;
-import deveoper.lin.local.picturebrowse.entity.PictureFolderEntity;
-import deveoper.lin.local.picturebrowse.widget.BottomPopWindow;
+import developer.lin.local.picturebrowse.adapter.GirdViewAdapter;
+import developer.lin.local.picturebrowse.entity.GirdViewEntity;
+import developer.lin.local.picturebrowse.entity.PictureEntity;
+import developer.lin.local.picturebrowse.entity.PictureFolderEntity;
+import developer.lin.local.picturebrowse.widget.BottomPopWindow;
 
 public class ImageMainActivity extends AppCompatActivity implements BottomPopWindow.changeListener, PopupWindow.OnDismissListener {
 
     private GridView girdView;
-    private TextView tvLeft;
-    private TextView tvRight;
-    private RelativeLayout rlBottom;
 
     public static final String TAG = "ImageMainActivity";
 
@@ -84,7 +81,6 @@ public class ImageMainActivity extends AppCompatActivity implements BottomPopWin
         mGirdList = getCurrentList();
         mGirdAdapter = new GirdViewAdapter(mGirdList, ImageMainActivity.this);
         girdView.setAdapter(mGirdAdapter);
-        initBottomViewData();
     }
 
     private ArrayList<GirdViewEntity> getCurrentList() {
@@ -100,13 +96,6 @@ public class ImageMainActivity extends AppCompatActivity implements BottomPopWin
         }
         return list;
     }
-
-    //初始化底部按钮
-    private void initBottomViewData() {
-        tvLeft.setText(currentParentFile.getName());
-        tvRight.setText(currentFileCount + "");
-    }
-
 
     private void initPopWindow() {
         if (!mfolderEntities.isEmpty()) {
@@ -124,9 +113,6 @@ public class ImageMainActivity extends AppCompatActivity implements BottomPopWin
 
     private void init() {
         girdView = (GridView) findViewById(R.id.gird_view);
-        tvLeft = (TextView) findViewById(R.id.tv_left);
-        tvRight = (TextView) findViewById(R.id.tv_right);
-        rlBottom = (RelativeLayout) findViewById(R.id.rl_bottom);
         mBtnStart = (Button) findViewById(R.id.btn_start);
     }
 
@@ -145,16 +131,6 @@ public class ImageMainActivity extends AppCompatActivity implements BottomPopWin
             }
         });
 
-        rlBottom.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mPopWindow != null) {
-                    mPopWindow.setAnimationStyle(R.style.pop_window_style);
-                    mPopWindow.showAsDropDown(rlBottom, 0, 0);
-                    managerViewLightStatus(false);
-                }
-            }
-        });
     }
 
     //加载图片
@@ -240,7 +216,6 @@ public class ImageMainActivity extends AppCompatActivity implements BottomPopWin
         mGirdAdapter = new GirdViewAdapter(mGirdList, this);
         girdView.setAdapter(mGirdAdapter);
         currentFileCount = mGirdList.size();
-        initBottomViewData();
         if (mPopWindow != null) {
             mPopWindow.dismiss();
         }

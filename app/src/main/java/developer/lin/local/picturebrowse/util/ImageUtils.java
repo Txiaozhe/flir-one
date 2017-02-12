@@ -1,4 +1,4 @@
-package deveoper.lin.local.picturebrowse.util;
+package developer.lin.local.picturebrowse.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

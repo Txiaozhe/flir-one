@@ -1,8 +1,9 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:orientation="vertical">
 
     <Button
         android:id="@+id/btn_start"
@@ -15,10 +16,8 @@
 
     <GridView
         android:id="@+id/gird_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_above="@+id/rl_bottom"
-        android:layout_below="@+id/btn_start"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:cacheColorHint="@android:color/transparent"
@@ -29,36 +28,5 @@
         android:stretchMode="columnWidth"
         android:verticalSpacing="5dp" />
 
-    <RelativeLayout
-        android:id="@+id/rl_bottom"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#ee000000">
 
-        <TextView
-            android:id="@+id/tv_left"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_centerVertical="true"
-            android:padding="15dp"
-            android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/tv_right"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:padding="15dp"
-            android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:visibility="gone" />
-
-    </RelativeLayout>
-
-
-</RelativeLayout>
+</LinearLayout>
