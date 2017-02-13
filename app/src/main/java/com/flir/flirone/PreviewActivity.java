@@ -5,7 +5,6 @@ import com.flir.flirone.dbhelper.DBManager;
 import com.flir.flirone.imagehelp.ImageHelp;
 import com.flir.flirone.imagehelp.MyImage;
 import com.flir.flirone.networkhelp.ConnectivityChangeReceiver;
-import com.flir.flirone.networkhelp.NetworkHelp;
 import com.flir.flirone.threshold.ThresholdHelp;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -49,7 +48,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.GatheringByteChannel;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -99,8 +97,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //检测网络状态
     private TextView showNetworkState;
-    private NetworkHelp networkHelp;
 
+    //
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
 
     //Device.Delegate接口实现的方法，设备已连接
@@ -500,9 +498,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         registerReceiver(receiver, intentFilter);
         receiver.setNetWorkStateChangeListener(this);
 
-        //启动时检测网络连接
-        networkHelp = new NetworkHelp(PreviewActivity.this);
-
         //网络状态
         showNetworkState = (TextView) findViewById(R.id.show_network_state);
 
@@ -695,9 +690,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     public void setNetworkState(String state) {
         if(state != null) {
             showNetworkState.setText(state);
-            if(state.equals("网络未连接\n将停止上传数据")) {
-                networkHelp.setNetwork();
-            }
         }
     }
 }
