@@ -38,7 +38,7 @@
                 style="?actionMenuTextAppearance"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginLeft="30dp"
+                android:layout_marginLeft="10dp"
                 android:layout_gravity="left|center"
                 android:layout_weight="0"
                 android:textOff=""
@@ -51,7 +51,7 @@
                 android:id="@+id/showDialog"
                 android:layout_width="100dp"
                 android:layout_height="50dp"
-                android:layout_marginLeft="30dp"
+                android:layout_marginLeft="5dp"
                 android:textSize="12sp"
                 android:text="设置阈值"/>
 
@@ -59,7 +59,14 @@
                 android:id="@+id/show_nfc_result"
                 android:layout_width="100dp"
                 android:layout_height="50dp"
-                android:layout_marginLeft="30dp"
+                android:layout_marginLeft="5dp"
+                />
+
+            <TextView
+                android:id="@+id/show_network_state"
+                android:layout_width="100dp"
+                android:layout_height="50dp"
+                android:layout_marginLeft="5dp"
                 />
 
 

@@ -11,7 +11,7 @@ import com.flir.flirone.imagehelp.ImageHelp;
 
 import java.io.File;
 
-import static com.flir.flirone.GlobalParameter.IMAGE_PATH;
+import static com.flir.flirone.GlobalConfig.IMAGE_PATH;
 
 public class ShowImageActivity extends Activity {
 

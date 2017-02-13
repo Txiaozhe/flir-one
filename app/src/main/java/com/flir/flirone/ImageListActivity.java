@@ -1,19 +1,17 @@
 package com.flir.flirone;
 
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
+
+import com.flir.flirone.imagehelp.ImageHelp;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,11 +21,15 @@ public class ImageListActivity extends AppCompatActivity {
 
     private ListView listView;
     private SimpleAdapter simpleAdapter;
+    private TextView imageNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_image_list);
+
+        imageNumber = (TextView) findViewById(R.id.image_number);
 
         listView = (ListView) findViewById(R.id.list_view);
         simpleAdapter = new SimpleAdapter(this, getData(), R.layout.image_list_item,
@@ -49,18 +51,19 @@ public class ImageListActivity extends AppCompatActivity {
     private ArrayList<HashMap<String, Object>> getData() {
         ArrayList<HashMap<String, Object>> arrayList = new ArrayList<>();
 
-        MyImage myImage = getDiskBitmap(GlobalParameter.IMAGE_PATH);
+        ImageHelp imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
         try{
-            File[] files = myImage.files;
+            File[] files = imageHelp.getFiles();
             Log.i("length", files.length + "");
+            imageNumber.setText("共 " + files.length + " 张照片");
             for (int i = 0; i < files.length; i++) {
+                File file = files[i];
                 HashMap<String, Object> map = new HashMap<>();
-                map.put("image", files[i].getPath());
-                map.put("name", files[i].getName());
-                map.put("size", "1.1MB");
-                map.put("time", "2017-01-12 16:05");
+                map.put("image", file.getPath());
+                map.put("name", file.getName());
+                map.put("size", imageHelp.getFileOrFilesSize(file));
+                map.put("time", imageHelp.getTimeFromName(file));
 
-                Log.i("imageinfo", files[i].getPath());
                 arrayList.add(map);
             }
 
@@ -69,39 +72,6 @@ public class ImageListActivity extends AppCompatActivity {
         }
 
         return arrayList;
-    }
-
-    private void showBigPicture(Context context, String path) {
-
-    }
-
-    class MyImage {
-        Bitmap bitmap;
-        File[] files;
-    }
-
-    //获取本地图片
-    private MyImage getDiskBitmap(String pathString) {
-        MyImage myImage = new MyImage();
-
-        Bitmap bitmap = null;
-        File[] files;
-        try {
-            File file = new File(pathString);
-            files = file.listFiles();
-            if (file.exists()) {
-                bitmap = BitmapFactory.decodeFile(pathString);
-
-            }
-
-            myImage.bitmap = bitmap;
-            myImage.files = files;
-
-        } catch (Exception e) {
-
-        }
-
-        return myImage;
     }
 }
 

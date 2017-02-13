@@ -4,16 +4,19 @@ package com.flir.flirone;
 import com.flir.flirone.dbhelper.DBManager;
 import com.flir.flirone.imagehelp.ImageHelp;
 import com.flir.flirone.imagehelp.MyImage;
+import com.flir.flirone.networkhelp.ConnectivityChangeReceiver;
+import com.flir.flirone.networkhelp.NetworkHelp;
 import com.flir.flirone.threshold.ThresholdHelp;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.CursorWrapper;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
+import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.content.Context;
 import android.app.Activity;
@@ -28,7 +31,6 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -47,6 +49,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.GatheringByteChannel;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -57,7 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate {
+public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate, ConnectivityChangeReceiver.NetworkStateInteraction {
     ImageView thermalImageView;
     private volatile boolean imageCaptureRequested = false;
     private volatile Socket streamSocket = null;
@@ -93,6 +96,10 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     //nfc
     private TextView showNfcResult;
     private String nfc_result;
+
+    //检测网络状态
+    private TextView showNetworkState;
+    private NetworkHelp networkHelp;
 
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
 
@@ -314,23 +321,23 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             final Context context = this;
             new Thread(new Runnable() {
                 public void run() {
-                    Log.i("lastSavedPath", "Storage:" + GlobalParameter.IMAGE_PATH);
+                    Log.i("lastSavedPath", "Storage:" + GlobalConfig.IMAGE_PATH);
 
                     String fileName = nfc_result.substring(1) + "-" + getFileName() + ".jpg";
                     Log.i("nfcfilename", fileName);
                     try {
-                        lastSavedPath = GlobalParameter.IMAGE_PATH + "/" + fileName;
+                        lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName;
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
 
-                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(GlobalParameter.IMAGE_PATH)));
+                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(GlobalConfig.IMAGE_PATH)));
                         Log.i("lastSavedPath", lastSavedPath);
 
                         MediaScannerConnection.scanFile(context,
-                                new String[]{GlobalParameter.IMAGE_PATH + "/" + fileName}, null,
+                                new String[]{GlobalConfig.IMAGE_PATH + "/" + fileName}, null,
                                 new MediaScannerConnection.OnScanCompletedListener() {
                                     @Override
                                     public void onScanCompleted(String path, Uri uri) {
-                                        Log.i("lastSavedPath", "Scanned " + GlobalParameter.IMAGE_PATH + ":");
+                                        Log.i("lastSavedPath", "Scanned " + GlobalConfig.IMAGE_PATH + ":");
                                         Log.i("lastSavedPath", "-> uri=" + uri);
                                     }
 
@@ -483,8 +490,21 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
         //sqlite
         dbManager = new DBManager(this);
-        operateSQLite();
+        add();
         query();
+
+        //网络检测
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        ConnectivityChangeReceiver receiver = new ConnectivityChangeReceiver();
+        registerReceiver(receiver, intentFilter);
+        receiver.setNetWorkStateChangeListener(this);
+
+        //启动时检测网络连接
+        networkHelp = new NetworkHelp(PreviewActivity.this);
+
+        //网络状态
+        showNetworkState = (TextView) findViewById(R.id.show_network_state);
 
         //是否开启警报
         warnButton = (ToggleButton) findViewById(R.id.warnButton);
@@ -542,7 +562,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
         //查看所有图片按钮设置缩略图
         showImage = (ImageButton) findViewById(R.id.showImage);
-        imageHelp = new ImageHelp(GlobalParameter.IMAGE_PATH);
+        imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
         try{
             File[] files = imageHelp.getFiles();
             if(files != null && files.length >= 1) {
@@ -574,7 +594,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     }
 
     //sqlite
-    private void operateSQLite() {
+    private void add() {
         ArrayList<MyImage> images = new ArrayList<MyImage>();
 
         MyImage image = new MyImage("dhedhe.jpg", "/pictures", "jpg", "1.1MB", "2017-02-12", "90℃", "90", "76", "88");
@@ -668,5 +688,16 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         super.onDestroy();
         //sqlite
         dbManager.closeDB();
+    }
+
+    //网络状态改变时设置提示文字
+    @Override
+    public void setNetworkState(String state) {
+        if(state != null) {
+            showNetworkState.setText(state);
+            if(state.equals("网络未连接\n将停止上传数据")) {
+                networkHelp.setNetwork();
+            }
+        }
     }
 }
