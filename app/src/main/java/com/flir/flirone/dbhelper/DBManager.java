@@ -29,10 +29,10 @@ public class DBManager {
         db.beginTransaction();  //开始事务
         try {
             for (MyImage image : images) {
-                db.execSQL("INSERT INTO images VALUES(null, ?, ?, ?, ?, ?, ?, ?, ?, ?)", new Object[]{image.getName(),
-                image.getPath(), image.getType(), image.getSize(), image.getTime(),
-                image.getMaxTemp(), image.getMaxTempX(), image.getMaxTempY(),
-                image.getAverageTemp()});
+                db.execSQL("INSERT INTO images VALUES(null, ?, ?, ?, ?, ?, ?, ?, ?, ?)", new Object[]{image.getImagename(),
+                image.getPath(), image.getType(), image.getSize(), image.getImagetime(),
+                image.getMaxtemperature(), image.getMaxtemplocalx(), image.getMaxtemplocaly(),
+                image.getMeantemperature()});
             }
             db.setTransactionSuccessful();  //设置事务成功完成
         } finally {
@@ -59,15 +59,15 @@ public class DBManager {
         Cursor c = queryTheCursor();
         while (c.moveToNext()) {
             MyImage image = new MyImage();
-            image.setName(c.getString(c.getColumnIndex("name")));
+            image.setImagename(c.getString(c.getColumnIndex("name")));
             image.setPath(c.getString(c.getColumnIndex("path")));
             image.setType(c.getString(c.getColumnIndex("type")));
             image.setSize(c.getString(c.getColumnIndex("size")));
-            image.setTime(c.getString(c.getColumnIndex("time")));
-            image.setMaxTemp(c.getString(c.getColumnIndex("maxTemp")));
-            image.setMaxTempX(c.getString(c.getColumnIndex("maxTempX")));
-            image.setMaxTempY(c.getString(c.getColumnIndex("maxTempY")));
-            image.setAverageTemp(c.getString(c.getColumnIndex("averageTemp")));
+            image.setImagetime(c.getString(c.getColumnIndex("time")));
+            image.setMaxtemperature(c.getString(c.getColumnIndex("maxTemp")));
+            image.setMaxtemplocalx(c.getString(c.getColumnIndex("maxTempX")));
+            image.setMaxtemplocaly(c.getString(c.getColumnIndex("maxTempY")));
+            image.setMeantemperature(c.getString(c.getColumnIndex("averageTemp")));
 
             images.add(image);
         }

@@ -5,8 +5,13 @@ import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 
 /**
@@ -139,5 +144,39 @@ public class ImageHelp {
         String sec = time.substring(12, time.length());
 
         return year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
+    }
+
+    public String getTimeFromName(String fileName) {
+
+        String time = fileName.substring(fileName.indexOf("-") + 1, fileName.length() - 4);
+        String year = time.substring(0, 4);
+        String month = time.substring(4, 6);
+        String day = time.substring(6, 8);
+        String hour = time.substring(8, 10);
+        String min = time.substring(10, 12);
+        String sec = time.substring(12, time.length());
+
+        return year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
+    }
+
+
+    public byte[] getFileToByte(File file) {
+        byte[] by = new byte[(int) file.length()];
+        try {
+            InputStream is = new FileInputStream(file);
+            ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
+            byte[] bb = new byte[2048];
+            int ch;
+            ch = is.read(bb);
+            while (ch != -1) {
+                bytestream.write(bb, 0, ch);
+                ch = is.read(bb);
+            }
+            by = bytestream.toByteArray();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return by;
     }
 }

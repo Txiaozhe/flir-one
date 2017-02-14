@@ -19,12 +19,14 @@ android {
 
 }
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile(name:'flironesdk', ext:'aar')
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile(name: 'flironesdk', ext: 'aar')
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:support-v4:24.2.1'
-
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+    compile files('libs/ksoap2-android-assembly-2.5.2-jar-with-dependencies.jar')
+    compile files('libs/ksoap2-android-assembly-3.1.0-jar-with-dependencies.jar')
+    compile files('libs/ksoap2-android-assembly-3.0.0-jar-with-dependencies.jar')
 }
 
 repositories{

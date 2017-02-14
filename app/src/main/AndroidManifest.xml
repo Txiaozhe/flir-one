@@ -57,9 +57,12 @@
 
         <receiver
             android:name=".networkhelp.ConnectivityChangeReceiver"
-            android:enabled="true">
-        </receiver>
+            android:enabled="true"></receiver>
 
+        <service
+            android:name=".networkhelp.UpLoadService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

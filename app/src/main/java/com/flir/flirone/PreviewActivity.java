@@ -16,6 +16,7 @@ import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.content.Context;
 import android.app.Activity;
@@ -97,6 +98,12 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //检测网络状态
     private TextView showNetworkState;
+
+    //手机串号
+    private TextView showTeleimei;
+
+    //保存到数据库
+    MyImage myImage = new MyImage("FALSE");
 
     //
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
@@ -285,6 +292,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 @Override
                 public void run() {
                     ((TextView) findViewById(R.id.spotMeterValue)).setText(spotMeterValue);
+                    //设置平均温度
+                    myImage.setMeantemperature(spotMeterValue);
                 }
             });
 
@@ -321,40 +330,29 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 public void run() {
                     Log.i("lastSavedPath", "Storage:" + GlobalConfig.IMAGE_PATH);
 
-                    String fileName = nfc_result.substring(1) + "-" + getFileName() + ".jpg";
-                    Log.i("nfcfilename", fileName);
+                    final String fileName = nfc_result.substring(1) + "-" + getFileName() + ".jpg";
+
                     try {
                         lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName;
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
-
+                        myImage.setImagename(fileName);
+                        Log.i("lastSavedPath", fileName);
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(GlobalConfig.IMAGE_PATH)));
-                        Log.i("lastSavedPath", lastSavedPath);
 
                         MediaScannerConnection.scanFile(context,
                                 new String[]{GlobalConfig.IMAGE_PATH + "/" + fileName}, null,
                                 new MediaScannerConnection.OnScanCompletedListener() {
                                     @Override
                                     public void onScanCompleted(String path, Uri uri) {
-                                        Log.i("lastSavedPath", "Scanned " + GlobalConfig.IMAGE_PATH + ":");
-                                        Log.i("lastSavedPath", "-> uri=" + uri);
+                                        myImage.setPath(path);
+
+                                        myImage.setImagetime(imageHelp.getTimeFromName(fileName));
                                     }
 
                                 });
-
                     } catch (Exception e) {
                         Log.e("Exp", e.toString());
                     }
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            thermalImageView.animate().setDuration(50).scaleY(0).withEndAction((new Runnable() {
-                                public void run() {
-                                    thermalImageView.animate().setDuration(50).scaleY(1);
-                                }
-                            }));
-                        }
-                    });
                 }
             }).start();
         }
@@ -417,7 +415,12 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             // load the frame
             onFrameReceived(frame);
         } else {
-            this.imageCaptureRequested = true;
+            if(nfc_result.equals("NNFC未识别")) {
+                Toast.makeText(PreviewActivity.this, "NFC未识别，无法进行拍照！", Toast.LENGTH_SHORT).show();
+            } else {
+                this.imageCaptureRequested = true;
+                Log.i("myimagetostring", myImage.toString());
+            }
 
             try{
                 File[] files = imageHelp.getFiles();
@@ -488,8 +491,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
         //sqlite
         dbManager = new DBManager(this);
-        add();
-        query();
+//        add();
+//        query();
 
         //网络检测
         IntentFilter intentFilter = new IntentFilter();
@@ -500,6 +503,13 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
         //网络状态
         showNetworkState = (TextView) findViewById(R.id.show_network_state);
+
+        //手机串号
+        showTeleimei = (TextView) findViewById(R.id.show_teleimei);
+        TelephonyManager telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
+        showTeleimei.setText("手机串号：\n" + telephonyManager.getDeviceId());
+        //设置手机串号
+        myImage.setTeleimei(telephonyManager.getDeviceId());
 
         //是否开启警报
         warnButton = (ToggleButton) findViewById(R.id.warnButton);
@@ -585,21 +595,23 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 nfc_result = "NNFC未识别";
             }
             showNfcResult.setText("当前车厢号：\n" + nfc_result.substring(1));
+            //设置NFC标签
+            myImage.setBarcode(nfc_result.substring(1));
         }
     }
 
-    //sqlite
+    //sqlite ？？？？？？？？？
     private void add() {
         ArrayList<MyImage> images = new ArrayList<MyImage>();
-
-        MyImage image = new MyImage("dhedhe.jpg", "/pictures", "jpg", "1.1MB", "2017-02-12", "90℃", "90", "76", "88");
+        //创建保存对象
+        MyImage image = new MyImage();
         images.add(image);
         dbManager.add(images);
     }
 
     public void update() {
         MyImage myImage = new MyImage();
-        myImage.setName("Jane");
+        myImage.setImagename("Jane");
         dbManager.updateAge(myImage);
     }
 
@@ -614,10 +626,10 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         ArrayList<Map<String, String>> list = new ArrayList<Map<String, String>>();
         for (MyImage myImage : myImages) {
             HashMap<String, String> map = new HashMap<String, String>();
-            map.put("name", myImage.getName());
+            map.put("name", myImage.getImagename());
             map.put("path", myImage.getPath());
             list.add(map);
-            Log.i("sqlitequery", myImage.getName());
+            Log.i("sqlitequery", myImage.getImagename());
         }
     }
 

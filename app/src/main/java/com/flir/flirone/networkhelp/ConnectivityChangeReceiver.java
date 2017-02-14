@@ -14,6 +14,10 @@ import android.widget.Toast;
 import com.flir.flirone.GlobalConfig;
 import com.flir.flirone.R;
 
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+
 public class ConnectivityChangeReceiver extends BroadcastReceiver {
 
     private NetworkStateInteraction networkStateInteraction;
@@ -33,7 +37,13 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             } else if(wifiNetInfo.isConnected()) {
                 networkStateInteraction.setNetworkState(GlobalConfig.WIFI_CONNECTED);
             }
+
+            //启动上传服务
+            Intent serviceIntent = new Intent(context, UpLoadService.class);
+            context.startService(serviceIntent);
+
         }
+
     }
 
     /**

@@ -94,6 +94,14 @@
             android:rowCount="2"
             tools:ignore="UselessParent">
 
+            <TextView
+                android:id="@+id/show_teleimei"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|bottom|left"
+                android:layout_marginLeft="10dp"
+                android:layout_marginBottom="20dp"
+                android:text="手机串号："/>
 
             <ImageButton
                 android:id="@+id/imageButton"
