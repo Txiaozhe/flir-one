@@ -190,6 +190,7 @@ public class MyImage {
                 ", teleimei='" + teleimei + '\'' +
                 ", barcode='" + barcode + '\'' +
                 ", heatimage=" + heatimage +
+                ", imagepath=" + path +
                 ", imagename='" + imagename + '\'' +
                 ", imagetime='" + imagetime + '\'' +
                 ", maxtemperature='" + maxtemperature + '\'' +
@@ -198,4 +199,6 @@ public class MyImage {
                 ", meantemperature='" + meantemperature + '\'' +
                 '}';
     }
+
+
 }

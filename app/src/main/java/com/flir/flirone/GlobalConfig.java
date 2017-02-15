@@ -25,7 +25,13 @@ public class GlobalConfig {
     public static final String SERVER_IP = "211.143.78.218:7044";
     public static final int NET_TIMEOUT_MS = 6000;
     public static final String NAMESPACE = "http://tempuri.org/";
-    public static final String WEBSERVICE_URL =  "http://211.143.78.218:7044//pcj_cloudtrain_ws//Service1.asmx";
-    public static final String METHOD_NAME = "ReceiveInspecteWorkMainWithGPS";
+    public static final String WEBSERVICE_URL = "http://211.143.78.218:7044//pcj_cloudtrain_ws//Service1.asmx";
+    public static final String METHOD_NAME = "ReceiveHeatImageInfoWithGPS";
 
+    //数据库
+    public static final String DB_NAME = "heat_images_info.db";
+    public static final int DATABASE_VERSION = 1;
+    public static final String TABLE_COLUMN_NAMES = "isUpload TEXT, teleimei TEXT, barcode TEXT, " +
+            "path TEXT, imagename TEXT, imagetime TEXT, maxtemperature TEXT, " +
+            "maxtemplocalx TEXT, maxtemplocaly TEXT, meantemperature TEXT)";
 }

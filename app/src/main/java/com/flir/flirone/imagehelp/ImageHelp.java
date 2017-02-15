@@ -3,6 +3,7 @@ package com.flir.flirone.imagehelp;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
+import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -173,10 +174,14 @@ public class ImageHelp {
                 ch = is.read(bb);
             }
             by = bytestream.toByteArray();
+
+            Log.i("uploadservice_image", "length:" + by.length);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        return by;
+        return Base64.encode(by, Base64.DEFAULT);
     }
+
+
 }

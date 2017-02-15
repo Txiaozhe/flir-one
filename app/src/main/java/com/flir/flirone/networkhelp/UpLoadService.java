@@ -49,10 +49,11 @@ public class UpLoadService extends Service {
         File[] files = imageHelp.getFiles();
         Log.i("uploadservice_image", files.length + "");
         try{
-            byte[] bytes = imageHelp.getFileToByte(files[0]);
+            byte[] bytes = imageHelp.getFileToByte(files[files.length - 1]);
+            Log.i("uploadservice_image", "base64 length:" + bytes.length);
             Log.i("uploadservice_image", files[0].getPath());
-            Log.i("uploadservice_image", bytes[0] + "");
-            webServiceCall.request.addProperty("heatimage", "bytes");    // 图像
+            Log.i("uploadservice_image", new String(bytes, "UTF-8"));
+            webServiceCall.request.addProperty("heatimage", new String(bytes, "UTF-8"));    // 图像
         } catch (Exception e) {
             Log.i("uploadservice_image", e.toString());
         }
