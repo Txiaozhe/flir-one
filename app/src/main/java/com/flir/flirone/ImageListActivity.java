@@ -1,5 +1,6 @@
 package com.flir.flirone;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -17,7 +18,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class ImageListActivity extends AppCompatActivity {
+public class ImageListActivity extends Activity {
 
     private ListView listView;
     private SimpleAdapter simpleAdapter;
@@ -26,7 +27,7 @@ public class ImageListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_image_list);
 
         imageNumber = (TextView) findViewById(R.id.image_number);
@@ -68,7 +69,7 @@ public class ImageListActivity extends AppCompatActivity {
             }
 
         } catch (Exception e) {
-
+            imageNumber.setText("共 0 张照片");
         }
 
         return arrayList;

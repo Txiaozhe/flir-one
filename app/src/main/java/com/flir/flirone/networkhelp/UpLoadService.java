@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.flir.flirone.GlobalConfig;
 import com.flir.flirone.imagehelp.ImageHelp;
+import com.flir.flirone.imagehelp.MyImage;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -18,8 +19,7 @@ import java.io.IOException;
 public class UpLoadService extends Service {
     WebServiceCall webServiceCall;
 
-    public UpLoadService() {
-    }
+    public UpLoadService() {}
 
     @Override
     public void onCreate() {
@@ -73,6 +73,21 @@ public class UpLoadService extends Service {
             }
         }).start();
 
+
+    }
+
+    private void request(WebServiceCall call, MyImage myImage) {
+        if(myImage.getIsUpLoad().equals("FALSE")) {
+            call.request.addProperty(GlobalConfig.PHONE_TAG, myImage.getTeleimei()); //手机串号
+            call.request.addProperty(GlobalConfig.NFC_TAG, myImage.getBarcode());
+            call.request.addProperty(GlobalConfig.IMAGE, "");
+            call.request.addProperty(GlobalConfig.IMAGE_NAME, myImage.getImagename());
+            call.request.addProperty(GlobalConfig.IMAGE_TIME, myImage.getImagetime());
+            call.request.addProperty(GlobalConfig.MAX_TEMP, myImage.getMaxtemperature());
+            call.request.addProperty(GlobalConfig.MAX_TEMP_X, myImage.getMaxtemplocalx());
+            call.request.addProperty(GlobalConfig.MAX_TEMP_Y, myImage.getMaxtemplocaly());
+            call.request.addProperty(GlobalConfig.AVERAGE_TEMP, myImage.getMeantemperature());
+        }
 
     }
 

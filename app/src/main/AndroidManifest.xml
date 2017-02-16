@@ -57,12 +57,13 @@
 
         <receiver
             android:name=".networkhelp.ConnectivityChangeReceiver"
-            android:enabled="true"></receiver>
+            android:enabled="true" />
 
         <service
             android:name=".networkhelp.UpLoadService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
     </application>
 
 </manifest>

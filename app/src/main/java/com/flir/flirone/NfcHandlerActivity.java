@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
+import android.os.CountDownTimer;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,7 +24,7 @@ public class NfcHandlerActivity extends AppCompatActivity {
     private String nfcResult;
 
     //返回主程序按钮
-    private Button bt_return;
+    private Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,21 @@ public class NfcHandlerActivity extends AppCompatActivity {
         } else {
             nfcTView.setText("NFC可用");
         }
+
+        CountDownTimer timer = new CountDownTimer(2000, 1000) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {}
+
+            @Override
+            public void onFinish() {
+                intent = new Intent(NfcHandlerActivity.this, PreviewActivity.class);
+                intent.putExtra("nfcresult", nfcResult);
+                startActivity(intent);
+                finish();
+            }
+        };
+        timer.start();
 
         new Thread(new Runnable() {
             @Override
@@ -78,12 +94,6 @@ public class NfcHandlerActivity extends AppCompatActivity {
         return nfcInfo;
     }
 
-    public void returnToPreview(View v) {
-        Intent intent = new Intent(NfcHandlerActivity.this, PreviewActivity.class);
-        intent.putExtra("nfcresult", nfcResult);
-        startActivity(intent);
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -92,7 +102,7 @@ public class NfcHandlerActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_BACK) {
-            Intent intent = new Intent(NfcHandlerActivity.this, PreviewActivity.class);
+            intent = new Intent(NfcHandlerActivity.this, PreviewActivity.class);
             intent.putExtra("nfcresult", nfcTView.getText().toString());
             startActivity(intent);
         }

@@ -39,47 +39,52 @@
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_marginLeft="10dp"
+                android:layout_marginTop="2dp"
                 android:layout_gravity="left|center"
-                android:layout_weight="0"
-                android:textOff=""
-                android:textOn=""
                 android:checked="true"
                 android:textSize="12sp"
+                android:textOff=""
+                android:textOn=""
                 android:background="@mipmap/bell_open"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/show_nfc_result"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="当前车厢号"
+                    />
+
+                <TextView
+                    android:id="@+id/show_network_state"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="网络未连接"
+                    />
+
+            </LinearLayout>
 
             <Button
                 android:id="@+id/showDialog"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_marginLeft="5dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="30dp"
+                android:gravity="center"
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="5dp"
                 android:textSize="12sp"
-                android:text="设置阈值"/>
-
-            <TextView
-                android:id="@+id/show_nfc_result"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_marginLeft="5dp"
-                />
-
-            <TextView
-                android:id="@+id/show_network_state"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:layout_marginLeft="5dp"
-                />
-
-
-            <ToggleButton
-                android:id="@+id/chargeCableToggle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:layout_weight="0.10"
-                android:checked="false"
-                android:onClick="onSimulatedChargeCableToggleClicked"
-                android:text="Cable"
-                android:visibility="gone" />
+                android:textColor="#000000"
+                android:text="设置阈值"
+                android:background="#cdcdcd"/>
 
         </LinearLayout>
 
@@ -100,18 +105,18 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal|bottom|left"
                 android:layout_marginLeft="10dp"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="10dp"
                 android:text="手机串号："/>
 
             <ImageButton
                 android:id="@+id/imageButton"
                 style="?metaButtonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
                 android:layout_gravity="center_horizontal|bottom"
                 android:layout_weight="0.33"
                 android:onClick="onCaptureImageClicked"
-                android:src="@android:drawable/ic_menu_camera" />
+                android:src="@mipmap/camera1" />
 
 
 
@@ -121,7 +126,6 @@
                 android:layout_width="55dp"
                 android:layout_height="55dp"
                 android:layout_marginRight="10dp"
-                android:layout_marginBottom="10dp"
                 android:src="@mipmap/nothing" />
 
         </FrameLayout>
@@ -165,7 +169,17 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:alpha="0.9"
+        android:visibility="invisible"
         android:src="@android:drawable/ic_menu_mylocation" />
+
+    <TextView
+        android:id="@+id/loading"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:text="正在初始化热成像设备..."
+        android:gravity="center"
+        android:textSize="20sp"/>
 
     <TextView
         android:id="@+id/spotMeterValue"

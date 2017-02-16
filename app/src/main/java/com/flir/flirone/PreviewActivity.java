@@ -23,7 +23,6 @@ import android.content.Context;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.view.OrientationEventListener;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.Window;
@@ -31,7 +30,6 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -42,24 +40,18 @@ import com.flir.flironesdk.Frame;
 import com.flir.flironesdk.FrameProcessor;
 import com.flir.flironesdk.RenderedImage;
 import com.flir.flironesdk.LoadedFrame;
-import com.flir.flironesdk.SimulatedDevice;
 
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate, ConnectivityChangeReceiver.NetworkStateInteraction {
-    ImageView thermalImageView;
+    private ImageView thermalImageView;
     private volatile boolean imageCaptureRequested = false;
-    private boolean chargeCableIsConnected = true;
 
     private volatile Device flirOneDevice;
     private FrameProcessor frameProcessor;
@@ -118,42 +110,21 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         flirOneDevice = device;
         flirOneDevice.startFrameStream(this);
 
-        final ToggleButton chargeCableButton = (ToggleButton) findViewById(R.id.chargeCableToggle);
-        if (flirOneDevice instanceof SimulatedDevice) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    chargeCableButton.setChecked(chargeCableIsConnected);
-                    chargeCableButton.setVisibility(View.VISIBLE);
-                }
-            });
-        } else {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    chargeCableButton.setChecked(chargeCableIsConnected);
-                    chargeCableButton.setVisibility(View.INVISIBLE);
-                }
-            });
-        }
-
     }
 
     //Device.Delegate接口实现的方法，设备未连接
     public void onDeviceDisconnected(Device device) {
         Log.i("ExampleApp", "Device disconnected!");
 
-        final ToggleButton chargeCableButton = (ToggleButton) findViewById(R.id.chargeCableToggle);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 findViewById(R.id.pleaseConnect).setVisibility(View.GONE);
                 thermalImageView.setImageBitmap(Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8));
-                chargeCableButton.setChecked(chargeCableIsConnected);
-                chargeCableButton.setVisibility(View.INVISIBLE);
                 thermalImageView.clearColorFilter();
                 findViewById(R.id.tuningProgressBar).setVisibility(View.GONE);
                 findViewById(R.id.tuningTextView).setVisibility(View.GONE);
+
             }
         });
         flirOneDevice = null;
@@ -164,6 +135,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         Log.i("ExampleApp", "Tuning state changed changed!");
 
         currentTuningState = tuningState;
+        //当热成像设备正在连接
         if (tuningState == Device.TuningState.InProgress) {
             runOnUiThread(new Thread() {
                 @Override
@@ -172,9 +144,13 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     thermalImageView.setColorFilter(Color.DKGRAY, PorterDuff.Mode.DARKEN);
                     findViewById(R.id.tuningProgressBar).setVisibility(View.VISIBLE);
                     findViewById(R.id.tuningTextView).setVisibility(View.VISIBLE);
+
+                    loading.setVisibility(View.GONE);
+                    spotMeterIcon.setVisibility(View.VISIBLE);
                 }
             });
         } else {
+            //连接成功
             runOnUiThread(new Thread() {
                 @Override
                 public void run() {
@@ -332,7 +308,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final String fileName = nfc_result.substring(1) + "-" + getFileName() + ".jpg";
+                    final String fileName = nfc_result.substring(1) + "_" + getFileName() + ".jpg";
 
                     try {
                         lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName;
@@ -413,21 +389,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         Date date = new Date();
         DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         String time = format.format(date);
-        int suffix = (int) (Math.random() * (9999 - 1000 + 1)) + 1000;
         String fileName = time;
         return fileName;
-    }
-
-    public void onSimulatedChargeCableToggleClicked(View v) {
-        if (flirOneDevice instanceof SimulatedDevice) {
-            chargeCableIsConnected = !chargeCableIsConnected;
-            ((SimulatedDevice) flirOneDevice).setChargeCableState(chargeCableIsConnected);
-        }
-    }
-
-    public void onPaletteListViewClicked(View v) {
-        RenderedImage.Palette pal = (RenderedImage.Palette) (((ListView) v).getSelectedItem());
-        frameProcessor.setImagePalette(pal);
     }
 
     //热成像主界面
@@ -454,7 +417,12 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     ScaleGestureDetector mScaleDetector;
 
+    //sqlite
     private DBManager dbManager;
+
+    //开机提示
+    private TextView loading;
+    private ImageView spotMeterIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -462,6 +430,11 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_preview);
 
+        //显示开机提示
+        spotMeterIcon = (ImageView) findViewById(R.id.spotMeterIcon);
+        loading = (TextView) findViewById(R.id.loading);
+
+        //保存图片对象
         myImage = new MyImage("FALSE");
 
         //sqlite
@@ -558,7 +531,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             if (nfc_result == null) {
                 nfc_result = "NNFC未识别";
             }
-            showNfcResult.setText("当前车厢号：\n" + nfc_result.substring(1));
+            showNfcResult.setText("当前车厢号：" + nfc_result.substring(1));
             //设置NFC标签
             myImage.setBarcode(nfc_result.substring(1));
         }

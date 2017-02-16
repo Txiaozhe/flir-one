@@ -136,7 +136,7 @@ public class ImageHelp {
     public String getTimeFromName(File file) {
         String name = file.getName();
 
-        String time = name.substring(name.indexOf("-") + 1, name.length() - 4);
+        String time = name.substring(name.indexOf("_") + 1, name.length() - 4);
         String year = time.substring(0, 4);
         String month = time.substring(4, 6);
         String day = time.substring(6, 8);
