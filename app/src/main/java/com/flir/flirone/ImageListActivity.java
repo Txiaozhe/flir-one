@@ -3,7 +3,6 @@ package com.flir.flirone;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -13,6 +12,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.flir.flirone.imagehelp.ImageHelp;
+import com.flir.flirone.imagehelp.ImageInfo;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,21 +55,21 @@ public class ImageListActivity extends Activity {
         ImageHelp imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
         try{
             File[] files = imageHelp.getFiles();
-            Log.i("length", files.length + "");
-            imageNumber.setText("共 " + files.length + " 张照片");
+            imageNumber.setText("共 " + files.length + " 张图片");
             for (int i = 0; i < files.length; i++) {
                 File file = files[i];
+                ImageInfo info = imageHelp.getInfoFromName(files[i].getName());
                 HashMap<String, Object> map = new HashMap<>();
                 map.put("image", file.getPath());
-                map.put("name", file.getName());
+                map.put("name", info.getName() + ".jpg");
                 map.put("size", imageHelp.getFileOrFilesSize(file));
-                map.put("time", imageHelp.getTimeFromName(file));
+                map.put("time", imageHelp.getTimeFromName(info.getTime()));
 
                 arrayList.add(map);
             }
 
         } catch (Exception e) {
-            imageNumber.setText("共 0 张照片");
+            Log.i("eeeeeeeeee", e.toString());
         }
 
         return arrayList;

@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.flir.flirone.imagehelp.ImageHelp;
+import com.flir.flirone.imagehelp.ImageInfo;
 
 import java.io.File;
 
@@ -20,6 +21,8 @@ public class ShowImageActivity extends Activity {
     private TextView showImagePath;
     private TextView showImageSize;
     private TextView showImageTime;
+    private TextView showTemp;
+    private TextView showCoordinate;
 
     ImageHelp imageHelp;
 
@@ -29,12 +32,20 @@ public class ShowImageActivity extends Activity {
         showImagePath = (TextView) findViewById(R.id.tv_show_image_path);
         showImageSize = (TextView) findViewById(R.id.tv_show_image_size);
         showImageTime = (TextView) findViewById(R.id.tv_show_image_time);
+
+        showTemp = (TextView) findViewById(R.id.show_temp);
+        showCoordinate = (TextView) findViewById(R.id.show_coordinate);
     }
 
     private void setImageInfo(File file) {
-        showImagePath.setText(file.getPath());
+        ImageInfo info = imageHelp.getInfoFromName(file.getName());
+
+        showImagePath.setText(info.getName() + ".jpg");
         showImageSize.setText(imageHelp.getFileOrFilesSize(file));
-        showImageTime.setText(imageHelp.getTimeFromName(file));
+        showImageTime.setText(imageHelp.getTimeFromName(info.getName()));
+
+        showTemp.setText("最高温度：" + info.getMaxTemp() + "℃  平均温度：" + info.getAverTemp() + "℃");
+        showCoordinate.setText("最高温度坐标： (" + info.getMaxTempX() + "，" + info.getMaxTempY() + ")");
     }
 
     @Override

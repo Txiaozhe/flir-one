@@ -149,7 +149,7 @@ public class ImageHelp {
 
     public String getTimeFromName(String fileName) {
 
-        String time = fileName.substring(fileName.indexOf("-") + 1, fileName.length() - 4);
+        String time = fileName.substring(fileName.indexOf("_") + 1);
         String year = time.substring(0, 4);
         String month = time.substring(4, 6);
         String day = time.substring(6, 8);
@@ -181,6 +181,29 @@ public class ImageHelp {
         }
 
         return Base64.encode(by, Base64.DEFAULT);
+    }
+
+
+
+    public ImageInfo getInfoFromName(String name) {
+        int index1 = name.indexOf("&");
+        int index7 = name.indexOf("_");
+        int index2 = name.indexOf("@");
+        int index3 = name.indexOf("#");
+        int index4 = name.indexOf("$");
+        int index5 = name.indexOf("%");
+        int index6 = name.indexOf(".jpg");
+
+        ImageInfo info = new ImageInfo();
+        info.setName(name.substring(0, index1));
+        info.setTime(name.substring(index7 + 1, index1));
+        info.setUploadInfo(name.substring(index1 + 1, index2));
+        info.setMaxTemp(name.substring(index2 + 1, index3));
+        info.setMaxTempX(name.substring(index3 + 1, index4));
+        info.setMaxTempY(name.substring(index4 + 1, index5));
+        info.setAverTemp(name.substring(index5 + 1, index6));
+
+        return info;
     }
 
 

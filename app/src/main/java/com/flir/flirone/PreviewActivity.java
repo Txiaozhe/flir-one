@@ -1,7 +1,6 @@
 package com.flir.flirone;
 
 //主界面
-import com.flir.flirone.dbhelper.DBManager;
 import com.flir.flirone.imagehelp.ImageHelp;
 import com.flir.flirone.imagehelp.MyImage;
 import com.flir.flirone.networkhelp.ConnectivityChangeReceiver;
@@ -9,8 +8,6 @@ import com.flir.flirone.threshold.ThresholdHelp;
 
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
-import android.database.CursorWrapper;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
@@ -90,9 +87,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //手机串号
     private TextView showTeleimei;
-
-    //保存到数据库
-    MyImage myImage;
 
     //校准
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
@@ -308,25 +302,11 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final String fileName = nfc_result.substring(1) + "_" + getFileName() + ".jpg";
+                    final String fileName = nfc_result.substring(1) + "_" + getFileName();
 
                     try {
-                        lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName;
+                        lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName + "&" + "waiting" + "@" + (float)maxTemp + "#" + maxX + "$" + maxY + "%" + (float)meantTemp + ".jpg";
                         renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
-                        //设置保存图片参数
-                        myImage.setImagename(fileName);
-                        myImage.setPath(lastSavedPath);
-                        myImage.setImagetime(imageHelp.getTimeFromName(fileName));
-                        myImage.setMaxtemperature((float) maxTemp + "ºC");
-                        myImage.setMeantemperature((float) meantTemp + "ºC");
-                        myImage.setMaxtemplocalx(maxX + "");
-                        myImage.setMaxtemplocaly(maxY + "");
-
-                        Log.i("myimagetostring", fileName);
-                        Log.i("myimagetostring", myImage.toString());
-
-                        //保存至本地数据库
-                        //Log.i("sqlitequery", " " + dbManager.add(myImage));
 
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(GlobalConfig.IMAGE_PATH)));
 
@@ -335,7 +315,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                                 new MediaScannerConnection.OnScanCompletedListener() {
                                     @Override
                                     public void onScanCompleted(String path, Uri uri) {
-                                        myImage.setPath(path);
                                     }
 
                                 });
@@ -417,9 +396,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     ScaleGestureDetector mScaleDetector;
 
-    //sqlite
-    private DBManager dbManager;
-
     //开机提示
     private TextView loading;
     private ImageView spotMeterIcon;
@@ -433,13 +409,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         //显示开机提示
         spotMeterIcon = (ImageView) findViewById(R.id.spotMeterIcon);
         loading = (TextView) findViewById(R.id.loading);
-
-        //保存图片对象
-        myImage = new MyImage("FALSE");
-
-        //sqlite
-        dbManager = new DBManager(this);
-        //Log.i("sqlitequery", dbManager.query().size() + "");
 
         //网络检测
         IntentFilter intentFilter = new IntentFilter();
@@ -457,7 +426,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             showTeleimei = (TextView) findViewById(R.id.show_teleimei);
             TelephonyManager telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
             showTeleimei.setText("手机串号：\n" + telephonyManager.getDeviceId());
-            myImage.setTeleimei(telephonyManager.getDeviceId());
         } catch (Exception e) {
             Toast.makeText(PreviewActivity.this, "权限错误", Toast.LENGTH_SHORT).show();
         }
@@ -532,39 +500,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 nfc_result = "NNFC未识别";
             }
             showNfcResult.setText("当前车厢号：" + nfc_result.substring(1));
-            //设置NFC标签
-            myImage.setBarcode(nfc_result.substring(1));
         }
     }
 
-    //sqlite
-    public void update() {
-        MyImage myImage = new MyImage();
-        myImage.setImagename("Jane");
-        dbManager.updateAge(myImage);
-    }
-
-    public void delete() {
-        MyImage myImage = new MyImage();
-        //设置删除条件
-        dbManager.deleteOldPerson(myImage);
-    }
-
-    public void queryTheCursor() {
-        Cursor c = dbManager.queryTheCursor();
-        startManagingCursor(c); //托付给activity根据自己的生命周期去管理Cursor的生命周期
-        CursorWrapper cursorWrapper = new CursorWrapper(c) {
-            @Override
-            public String getString(int columnIndex) {
-                if (getColumnName(columnIndex).equals("name")) {
-                    String path = getString(getColumnIndex("path"));
-                    return path;
-                }
-                return super.getString(columnIndex);
-            }
-        };
-    }
-    //sqlite
 
     @Override
     public void onPause() {
@@ -598,8 +536,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //sqlite
-        dbManager.closeDB();
     }
 
     //网络状态改变时设置提示文字
