@@ -285,16 +285,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 updateThermalImageView(thermalBitmap);
             }
         } else {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    thermalBitmap = renderedImage.getBitmap();
-                }
-            }).start();
-
+            thermalBitmap = renderedImage.getBitmap();
             updateThermalImageView(thermalBitmap);
         }
-
 
         //捕获图像
         if (this.imageCaptureRequested) {

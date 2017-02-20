@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.flir.flirone.GlobalConfig;
 import com.flir.flirone.imagehelp.ImageHelp;
@@ -18,7 +19,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-public class UpLoadService extends Service implements ConnectivityChangeReceiver.NetworkStateInteraction {
+public class UpLoadService extends Service implements ConnectivityChangeReceiver.NetworkStateInteraction{
+    public static Integer mInprogressLock = new Integer(10000);
+    private static boolean mIsInprogress = false;
+
     WebServiceCall webServiceCall;
     final int TIME_DELAYED = 1000 * 60 * 10; //每10分钟重启一次服务
 
@@ -26,68 +30,80 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
     private Context context = this;
     private boolean isConnected = false;
 
+    //网络监测
+    private IntentFilter intentFilter;
+    private ConnectivityChangeReceiver receiver;
+
     public UpLoadService() {
+    }
+
+    public static void setUploadInProgress(boolean status) {
+        synchronized (mInprogressLock) {
+            mIsInprogress = status;
+        }
     }
 
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
 
-        //网络检测
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        ConnectivityChangeReceiver receiver = new ConnectivityChangeReceiver();
-        registerReceiver(receiver, intentFilter);
-        receiver.setNetWorkStateChangeListener(this);
-
         webServiceCall = new WebServiceCall(GlobalConfig.NAMESPACE, GlobalConfig.WEBSERVICE_URL,
                 GlobalConfig.METHOD_NAME, GlobalConfig.NET_TIMEOUT_MS);
 
         try {
-            new Thread(new Runnable() {
-                //获取手机串号
-                TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-                ImageHelp imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
-                File[] files = imageHelp.getFiles();
+            synchronized (mInprogressLock) {
+                if (!mIsInprogress) {
+                    UpLoadService.setUploadInProgress(true);
 
-                @Override
-                public void run() {
-                    if (isConnected) {
-                        for (int i = 0; i < files.length; i++) {
-                            if (files[i].getName().indexOf("_UP") < 0) {
-                                byte[] bytes = imageHelp.getFileToByte(files[i]);
-                                boolean isSuccess = false;
-                                try {
-                                    isSuccess = request(webServiceCall, imageHelp, imageHelp.getInfoFromName(files[i].getName()), telephonyManager.getDeviceId(), new String(bytes, "UTF-8"));
-                                } catch (UnsupportedEncodingException e) {
-                                    e.printStackTrace();
-                                }
-                                if (!isSuccess) { //实际中是isSuccess
-                                    imageHelp.renameImage(files[i]);
+                    new Thread(new Runnable() {
+                        //获取手机串号
+                        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+                        ImageHelp imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
+                        File[] files = imageHelp.getFiles();
+
+                        @Override
+                        public void run() {
+
+                            if (isConnected) {
+                                Log.i("connected", "connected");
+                                for (int i = 0; i < files.length; i++) {
+                                    if (files[i].getName().indexOf("_UP") < 0) {
+                                        byte[] bytes = imageHelp.getFileToByte(files[i]);
+                                        boolean isSuccess = false;
+                                        try {
+                                            isSuccess = request(webServiceCall, imageHelp, imageHelp.getInfoFromName(files[i].getName()), telephonyManager.getDeviceId(), new String(bytes, "UTF-8"));
+                                        } catch (UnsupportedEncodingException e) {
+                                            e.printStackTrace();
+                                        }
+                                        if (!isSuccess) { //实际中是isSuccess
+                                            imageHelp.renameImage(files[i]);
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                }
-            }).start();
 
+                            UpLoadService.setUploadInProgress(false);
+                        }
+                    }).start();
+                }
+            }
         } catch (Exception e) {
         }
 
         if (thread_create == null) {
-            final Thread thread = new Thread(new Runnable() {
+            thread_create = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    while (true) {
-                        try {
-                            Thread.sleep(TIME_DELAYED);
-                            startService(intent);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                while (true) {
+                    try {
+                        Thread.sleep(TIME_DELAYED);
+                        startService(intent);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
+                }
             });
-            thread.start();
+            thread_create.start();
         }
 
         return START_STICKY;
@@ -96,15 +112,11 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
     @Override
     public void onCreate() {
         super.onCreate();
-
-        thread_create = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Intent intent = new Intent(context, UpLoadService.class);
-                startService(intent);
-            }
-        });
-        thread_create.start();
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        receiver = new ConnectivityChangeReceiver();
+        registerReceiver(receiver, intentFilter);
+        receiver.setNetWorkStateChangeListener(this);
     }
 
     boolean isSuccess;
