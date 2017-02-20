@@ -2,8 +2,8 @@ package com.flir.flirone;
 
 //主界面
 import com.flir.flirone.imagehelp.ImageHelp;
-import com.flir.flirone.imagehelp.MyImage;
 import com.flir.flirone.networkhelp.ConnectivityChangeReceiver;
+import com.flir.flirone.networkhelp.UpLoadService;
 import com.flir.flirone.threshold.ThresholdHelp;
 
 import android.content.Intent;
@@ -15,7 +15,6 @@ import android.media.MediaScannerConnection;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.content.Context;
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -93,7 +92,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //Device.Delegate接口实现的方法，设备已连接
     public void onDeviceConnected(Device device) {
-        Log.i("ExampleApp", "Device connected!");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -108,7 +106,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //Device.Delegate接口实现的方法，设备未连接
     public void onDeviceDisconnected(Device device) {
-        Log.i("ExampleApp", "Device disconnected!");
 
         runOnUiThread(new Runnable() {
             @Override
@@ -126,7 +123,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //Device.Delegate接口实现的方法，调节状态改变
     public void onTuningStateChanged(Device.TuningState tuningState) {
-        Log.i("ExampleApp", "Tuning state changed changed!");
 
         currentTuningState = tuningState;
         //当热成像设备正在连接
@@ -174,7 +170,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //Device.StreamDelegate实现的方法，处理视图
     public void onFrameReceived(Frame frame) {
-        Log.v("ExampleApp", "Frame received!");
 
         if (currentTuningState != Device.TuningState.InProgress) {
             frameProcessor.processFrame(frame);
@@ -185,7 +180,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //FrameProcessor.Delegate接口实现的方法，的获取温度，视图处理器授权方法，将访问每次的frame的产生，实时进行扫描
     public void onFrameProcessed(final RenderedImage renderedImage) {
-        Log.i("onFrameProcessed", "onFrameProcessed");
+
         if (renderedImage.imageType() == RenderedImage.ImageType.ThermalRadiometricKelvinImage) {
             // Note: this code is not optimized
 
@@ -290,7 +285,13 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 updateThermalImageView(thermalBitmap);
             }
         } else {
-            thermalBitmap = renderedImage.getBitmap();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    thermalBitmap = renderedImage.getBitmap();
+                }
+            }).start();
+
             updateThermalImageView(thermalBitmap);
         }
 
@@ -305,8 +306,13 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     final String fileName = nfc_result.substring(1) + "_" + getFileName();
 
                     try {
-                        lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName + "&" + "waiting" + "@" + (float)maxTemp + "#" + maxX + "$" + maxY + "%" + (float)meantTemp + ".jpg";
-                        renderedImage.getFrame().save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
+                        lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName + "@" + (float)maxTemp + "#" + maxX + "$" + maxY + "%" + (float)meantTemp + ".jpg";
+                        Frame frame = renderedImage.getFrame();
+                        if(frame != null) {
+                            frame.save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
+                        } else {
+                            Toast.makeText(PreviewActivity.this, "图片获取失败", Toast.LENGTH_SHORT).show();
+                        }
 
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(GlobalConfig.IMAGE_PATH)));
 
@@ -319,7 +325,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
                                 });
                     } catch (Exception e) {
-                        Log.e("Exp", e.toString());
+
                     }
                 }
             }).start();
@@ -406,6 +412,10 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_preview);
 
+        //启动上传服务
+        Intent serviceIntent = new Intent(PreviewActivity.this, UpLoadService.class);
+        startService(serviceIntent);
+
         //显示开机提示
         spotMeterIcon = (ImageView) findViewById(R.id.spotMeterIcon);
         loading = (TextView) findViewById(R.id.loading);
@@ -472,7 +482,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
-                Log.d("ZOOM", "zoom ongoing, scale: " + detector.getScaleFactor());
                 frameProcessor.setMSXDistance(detector.getScaleFactor());
                 return false;
             }
@@ -482,6 +491,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         showImage = (ImageButton) findViewById(R.id.showImage);
         imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
         setThumb();
+
+        //检查所有图片的时间
+        imageHelp.checkAllImagesDate();
 
         //点击查看所有图片按钮进入图片展示页面
         showImage.setOnClickListener(new View.OnClickListener() {
@@ -510,7 +522,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         if (flirOneDevice != null) {
         //flirOneDevice.stopFrameStream();
         }
-        Log.i("activity_info", "pause");
     }
 
     @Override
@@ -520,14 +531,11 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         if (flirOneDevice != null) {
             flirOneDevice.startFrameStream(this);
         }
-
-        Log.i("activity_info", "resume");
     }
 
     @Override
     public void onStop() {
         // We must unregister our usb receiver, otherwise we will steal events from other apps
-        Log.e("PreviewActivity", "onStop, stopping discovery!");
         Device.stopDiscovery();
         flirOneDevice = null;
         super.onStop();

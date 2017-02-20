@@ -1,8 +1,6 @@
 package com.flir.flirone;
 
-import android.content.Context;
 import android.os.Environment;
-import android.telephony.TelephonyManager;
 
 /**
  * Created by txiaozhe on 12/02/2017.

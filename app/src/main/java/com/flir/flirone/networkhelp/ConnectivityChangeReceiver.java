@@ -8,15 +8,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.flir.flirone.GlobalConfig;
 import com.flir.flirone.R;
-
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 
 public class ConnectivityChangeReceiver extends BroadcastReceiver {
 
@@ -30,7 +24,7 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
 
         if (!mobNetInfo.isConnected() && !wifiNetInfo.isConnected()) {
             networkStateInteraction.setNetworkState(GlobalConfig.NO_NETWORK_CONNECTED);
-            setNetwork(context);
+//            setNetwork(context);
         } else {
             if(mobNetInfo.isConnected()) {
                 networkStateInteraction.setNetworkState(GlobalConfig.MOBILE_CONNECTED);
@@ -39,8 +33,12 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
             }
 
             //启动上传服务
-            Intent serviceIntent = new Intent(context, UpLoadService.class);
-            context.startService(serviceIntent);
+            try {
+                Intent serviceIntent = new Intent(context, UpLoadService.class);
+                context.startService(serviceIntent);
+            } catch (Exception e) {
+
+            }
 
         }
 
@@ -83,8 +81,14 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
 
             }
         });
-        builder.create();
-        builder.show();
+
+        try {
+//            builder.create();
+//            builder.show();
+        }catch (Exception e) {
+
+        }
+
     }
 
     public interface NetworkStateInteraction {

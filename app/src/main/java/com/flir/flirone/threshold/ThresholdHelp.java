@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -129,9 +128,6 @@ public class ThresholdHelp {
 
         threshold_low = sp.getInt("low", 20);
         threshold_high = sp.getInt("high", 40);
-
-        Log.i("low", threshold_low + "");
-        Log.i("high", threshold_high + "");
 
         showDialog.setText("设置阈值\n当前：" + threshold_low + ", " + threshold_high);
         showDialog.setOnClickListener(new View.OnClickListener() {

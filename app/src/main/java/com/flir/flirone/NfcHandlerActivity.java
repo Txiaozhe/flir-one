@@ -8,10 +8,7 @@ import android.os.CountDownTimer;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
-import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.UnsupportedEncodingException;
@@ -66,9 +63,7 @@ public class NfcHandlerActivity extends AppCompatActivity {
                     NfcInfo nfcInfo = readFromTag(getIntent());
                     nfcResult = nfcInfo.readResult;
                     nfcTView.setText("NFC扫描结果：" + nfcResult + "\n当前车厢号：硬卧1234");
-                    Log.i("action0", getIntent().getAction());
                 }
-                Log.i("action", getIntent().getAction());
             }
         }).start();
     }

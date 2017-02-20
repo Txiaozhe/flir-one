@@ -1,6 +1,5 @@
 package com.flir.flirone.networkhelp;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.ksoap2.SoapEnvelope;
@@ -8,7 +7,6 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
-
 
 public class WebServiceCall {
     public String NAMESPACE;

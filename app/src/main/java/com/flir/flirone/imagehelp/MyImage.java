@@ -2,8 +2,6 @@ package com.flir.flirone.imagehelp;
 
 import android.graphics.Bitmap;
 
-import java.io.File;
-
 /**
  * Created by txiaozhe on 12/02/2017.
  */

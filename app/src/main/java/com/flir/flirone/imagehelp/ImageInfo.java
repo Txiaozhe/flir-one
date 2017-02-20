@@ -7,6 +7,7 @@ package com.flir.flirone.imagehelp;
 public class ImageInfo {
     private String name;
     private String time;
+    private String nfcCode;
     private String uploadInfo;
     private String maxTemp;
     private String maxTempX;
@@ -27,6 +28,15 @@ public class ImageInfo {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+
+    public String getNfcCode() {
+        return nfcCode;
+    }
+
+    public void setNfcCode(String nfcCode) {
+        this.nfcCode = nfcCode;
     }
 
     public String getUploadInfo() {
@@ -74,6 +84,7 @@ public class ImageInfo {
         return "ImageInfo{" +
                 "name='" + name + '\'' +
                 ", time='" + time + '\'' +
+                ", nfcCode='" + nfcCode + '\'' +
                 ", uploadInfo='" + uploadInfo + '\'' +
                 ", maxTemp='" + maxTemp + '\'' +
                 ", maxTempX='" + maxTempX + '\'' +

@@ -3,7 +3,6 @@ package com.flir.flirone;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -63,13 +62,12 @@ public class ImageListActivity extends Activity {
                 map.put("image", file.getPath());
                 map.put("name", info.getName() + ".jpg");
                 map.put("size", imageHelp.getFileOrFilesSize(file));
-                map.put("time", imageHelp.getTimeFromName(info.getTime()));
+                map.put("time", imageHelp.getTimeFromName(info.getTime())); //错误
 
                 arrayList.add(map);
             }
 
         } catch (Exception e) {
-            Log.i("eeeeeeeeee", e.toString());
         }
 
         return arrayList;

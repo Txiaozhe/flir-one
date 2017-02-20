@@ -3,98 +3,168 @@ package com.flir.flirone.networkhelp;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.flir.flirone.GlobalConfig;
 import com.flir.flirone.imagehelp.ImageHelp;
-import com.flir.flirone.imagehelp.MyImage;
+import com.flir.flirone.imagehelp.ImageInfo;
 
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
-public class UpLoadService extends Service {
+public class UpLoadService extends Service implements ConnectivityChangeReceiver.NetworkStateInteraction {
     WebServiceCall webServiceCall;
+    final int TIME_DELAYED = 1000 * 60 * 10; //每10分钟重启一次服务
 
-    public UpLoadService() {}
+    private Thread thread_create;
+    private Context context = this;
+    private boolean isConnected = false;
+
+    public UpLoadService() {
+    }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.i("service_oncreated", "service_oncreated");
+    public int onStartCommand(final Intent intent, int flags, int startId) {
 
-        //获取手机串号
-        TelephonyManager telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
+        //网络检测
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        ConnectivityChangeReceiver receiver = new ConnectivityChangeReceiver();
+        registerReceiver(receiver, intentFilter);
+        receiver.setNetWorkStateChangeListener(this);
 
         webServiceCall = new WebServiceCall(GlobalConfig.NAMESPACE, GlobalConfig.WEBSERVICE_URL,
                 GlobalConfig.METHOD_NAME, GlobalConfig.NET_TIMEOUT_MS);
 
-        webServiceCall.request.addProperty("teleimei", telephonyManager.getDeviceId()); //手机串号
-        webServiceCall.request.addProperty("barcode", "rw1234");    // NFC标签
+        try {
+            new Thread(new Runnable() {
+                //获取手机串号
+                TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+                ImageHelp imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
+                File[] files = imageHelp.getFiles();
 
-        webServiceCall.request.addProperty("imagename", "edgejdhenjde.jpg"); //图像名
-        webServiceCall.request.addProperty("maxtemperature", "90"); //最高温度
-        webServiceCall.request.addProperty("maxtemplocalx", "30"); //最高温度位置X坐标
-        webServiceCall.request.addProperty("maxtemplocaly", "80"); //最高温度位置Y坐标
-        webServiceCall.request.addProperty("meantemperature", "70"); //平均温度
-        webServiceCall.request.addProperty("imagetime", "2017-02-13 12：13：14");
+                @Override
+                public void run() {
+                    if (isConnected) {
+                        for (int i = 0; i < files.length; i++) {
+                            if (files[i].getName().indexOf("_UP") < 0) {
+                                byte[] bytes = imageHelp.getFileToByte(files[i]);
+                                boolean isSuccess = false;
+                                try {
+                                    isSuccess = request(webServiceCall, imageHelp, imageHelp.getInfoFromName(files[i].getName()), telephonyManager.getDeviceId(), new String(bytes, "UTF-8"));
+                                } catch (UnsupportedEncodingException e) {
+                                    e.printStackTrace();
+                                }
+                                if (!isSuccess) { //实际中是isSuccess
+                                    imageHelp.renameImage(files[i]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }).start();
 
-//        webServiceCall.request.addProperty("powertype", "软卧1234");  //列车供电类型名称
-//        webServiceCall.request.addProperty("worktype", "测温");//作业任务类型
-
-        ImageHelp imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
-        File[] files = imageHelp.getFiles();
-        Log.i("uploadservice_image", files.length + "");
-        try{
-            byte[] bytes = imageHelp.getFileToByte(files[files.length - 1]);
-            Log.i("uploadservice_image", "base64 length:" + bytes.length);
-            Log.i("uploadservice_image", files[0].getPath());
-            Log.i("uploadservice_image", new String(bytes, "UTF-8"));
-            webServiceCall.request.addProperty("heatimage", new String(bytes, "UTF-8"));    // 图像
         } catch (Exception e) {
-            Log.i("uploadservice_image", e.toString());
         }
 
+        if (thread_create == null) {
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {
+                            Thread.sleep(TIME_DELAYED);
+                            startService(intent);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+            thread.start();
+        }
 
-        new Thread(new Runnable() {
+        return START_STICKY;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        thread_create = new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    String result = webServiceCall.callWebMethod().toString();
-                    Log.i("uploadservice", result);
-                } catch (IOException e) {
-                    Log.i("uploadservice_e0", e.toString());
-                } catch (XmlPullParserException e) {
-                    Log.i("uploadservice_e1", e.toString());
-                }
+                Intent intent = new Intent(context, UpLoadService.class);
+                startService(intent);
             }
-        }).start();
-
-
+        });
+        thread_create.start();
     }
 
-    private void request(WebServiceCall call, MyImage myImage) {
-        if(myImage.getIsUpLoad().equals("FALSE")) {
-            call.request.addProperty(GlobalConfig.PHONE_TAG, myImage.getTeleimei()); //手机串号
-            call.request.addProperty(GlobalConfig.NFC_TAG, myImage.getBarcode());
-            call.request.addProperty(GlobalConfig.IMAGE, "");
-            call.request.addProperty(GlobalConfig.IMAGE_NAME, myImage.getImagename());
-            call.request.addProperty(GlobalConfig.IMAGE_TIME, myImage.getImagetime());
-            call.request.addProperty(GlobalConfig.MAX_TEMP, myImage.getMaxtemperature());
-            call.request.addProperty(GlobalConfig.MAX_TEMP_X, myImage.getMaxtemplocalx());
-            call.request.addProperty(GlobalConfig.MAX_TEMP_Y, myImage.getMaxtemplocaly());
-            call.request.addProperty(GlobalConfig.AVERAGE_TEMP, myImage.getMeantemperature());
+    boolean isSuccess;
+
+    private boolean request(WebServiceCall call, ImageHelp imageHelp, ImageInfo imageInfo, String phoneId, String image) {
+        if (imageInfo.getName().indexOf("_UP") < 0) {
+            call.request.addProperty(GlobalConfig.PHONE_TAG, phoneId); //手机串号
+            call.request.addProperty(GlobalConfig.NFC_TAG, imageInfo.getNfcCode());
+            call.request.addProperty(GlobalConfig.IMAGE, image);
+            call.request.addProperty(GlobalConfig.IMAGE_NAME, imageInfo.getName());
+            call.request.addProperty(GlobalConfig.IMAGE_TIME, imageHelp.getTimeFromName(imageInfo.getName()));
+            call.request.addProperty(GlobalConfig.MAX_TEMP, imageInfo.getMaxTemp());
+            call.request.addProperty(GlobalConfig.MAX_TEMP_X, imageInfo.getMaxTempX());
+            call.request.addProperty(GlobalConfig.MAX_TEMP_Y, imageInfo.getMaxTempY());
+            call.request.addProperty(GlobalConfig.AVERAGE_TEMP, imageInfo.getAverTemp());
+
+            try {
+                String result = webServiceCall.callWebMethod().toString();
+                int result_code = Integer.parseInt(result);
+                if (result_code > 0) {
+                    isSuccess = true;
+                } else {
+                    isSuccess = false;
+                    switch (result_code) {
+                        case -1: {
+
+                            break;
+                        }
+                        case -2: {
+
+                            break;
+                        }
+                        case -9: {
+
+                            break;
+                        }
+                    }
+                }
+            } catch (IOException e) {
+            } catch (XmlPullParserException e) {
+            }
         }
-
+        return isSuccess;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void setNetworkState(String state) {
+        if (state.indexOf("网络已连接") >= 0) {
+            isConnected = true;
+        }
     }
 }
