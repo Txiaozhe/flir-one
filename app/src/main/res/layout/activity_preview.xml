@@ -172,14 +172,11 @@
         android:visibility="invisible"
         android:src="@android:drawable/ic_menu_mylocation" />
 
-    <TextView
+    <ProgressBar
         android:id="@+id/loading"
-        android:layout_width="300dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center"
-        android:text="正在初始化热成像设备..."
-        android:gravity="center"
-        android:textSize="20sp"/>
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"/>
 
     <TextView
         android:id="@+id/spotMeterValue"

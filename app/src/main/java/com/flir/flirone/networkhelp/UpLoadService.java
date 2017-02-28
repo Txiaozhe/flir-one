@@ -74,7 +74,7 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
                                         } catch (UnsupportedEncodingException e) {
                                             e.printStackTrace();
                                         }
-                                        if (!isSuccess) { //实际中是isSuccess
+                                        if (isSuccess) { //实际中是isSuccess
                                             imageHelp.renameImage(files[i]);
                                         }
                                     }

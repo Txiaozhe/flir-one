@@ -1,8 +1,12 @@
 package com.flir.flirone.imagehelp;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.util.Base64;
 
 import java.io.ByteArrayOutputStream;
@@ -248,16 +252,18 @@ public class ImageHelp {
 
     public void checkAllImagesDate() {
         File[] files = getFiles();
-        for (int i = 0; i < files.length; i++) {
-            String time = getTimeFromName(files[i]);
-            Date dateNow = new Date();
-            DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
-            String timeNow = format.format(dateNow);
+        try {
+            for (int i = 0; i < files.length; i++) {
+                String time = getTimeFromName(files[i]);
+                Date dateNow = new Date();
+                DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
+                String timeNow = format.format(dateNow);
 
-            if(daysBetween(time, timeNow) > 7 && files[i].getName().indexOf("_UP") > 0) {
-                deleteFile(files[i]);
+                if (daysBetween(time, timeNow) > 7 && files[i].getName().indexOf("_UP") > 0) {
+                    deleteFile(files[i]);
+                }
             }
-        }
+        } catch (Exception e) {}
     }
 
 }

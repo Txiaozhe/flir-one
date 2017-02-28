@@ -14,7 +14,7 @@
     <string name="stopNetStream">Disconnect</string>
 
     <!-- \u21EA  \u21B2  滤镜的两个图标-->
-    <string name="app_name_cn">FLIR ONE热成像仪</string>
+    <string name="app_name_cn">巡检管理系统</string>
     <string name="change_view_cn">滤镜\n(已使用默认滤镜)</string>
     <string name="change_view_retract_cn">滤镜\n(已使用默认滤镜)</string>
     <string name="connectSim_cn">FLIR设备已连接</string>

@@ -1,6 +1,7 @@
 package com.flir.flirone;
 
 //主界面
+
 import com.flir.flirone.imagehelp.ImageHelp;
 import com.flir.flirone.networkhelp.ConnectivityChangeReceiver;
 import com.flir.flirone.networkhelp.UpLoadService;
@@ -10,8 +11,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
+import android.media.SoundPool;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.telephony.TelephonyManager;
@@ -26,6 +29,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -59,6 +63,10 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     //播放警告音
     private MediaPlayer mp, mp_strong;
+
+    //拍照音效
+    private SoundPool sp;
+    private int sound;
 
     //查看图片
     private ImageButton showImage;
@@ -219,7 +227,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                         pixelTemp = thermalPixels[i] & 0xffff;
                         temp[i] = (pixelTemp / 100) - 273.15;
                         pixelCMax = pixelCMax < temp[i] ? temp[i] : pixelCMax;
-                        if(pixelCMax == temp[i]) {
+                        if (pixelCMax == temp[i]) {
                             maxIndex = i;
                         }
                         pixelCAll += temp[i];
@@ -299,9 +307,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     final String fileName = nfc_result.substring(1) + "_" + getFileName();
 
                     try {
-                        lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName + "@" + (float)maxTemp + "#" + maxX + "$" + maxY + "%" + (float)meantTemp + ".jpg";
+                        lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName + "@" + (float) maxTemp + "#" + maxX + "$" + maxY + "%" + (float) meantTemp + ".jpg";
                         Frame frame = renderedImage.getFrame();
-                        if(frame != null) {
+                        if (frame != null) {
                             frame.save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
                         } else {
                             Toast.makeText(PreviewActivity.this, "图片获取失败", Toast.LENGTH_SHORT).show();
@@ -331,6 +339,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     public void onCaptureImageClicked(View v) {
 
         if (flirOneDevice == null && lastSavedPath != null) {
+
             //load!
             File file = new File(lastSavedPath);
 
@@ -342,6 +351,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             if (nfc_result.equals("NNFC未识别")) {
                 Toast.makeText(PreviewActivity.this, "NFC未识别，无法进行拍照！", Toast.LENGTH_SHORT).show();
             } else {
+                sp.play(sound, 1, 1, 0, 0, 1);
                 this.imageCaptureRequested = true;
             }
 
@@ -396,7 +406,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     ScaleGestureDetector mScaleDetector;
 
     //开机提示
-    private TextView loading;
+    private ProgressBar loading;
     private ImageView spotMeterIcon;
 
     @Override
@@ -411,7 +421,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
         //显示开机提示
         spotMeterIcon = (ImageView) findViewById(R.id.spotMeterIcon);
-        loading = (TextView) findViewById(R.id.loading);
+        loading = (ProgressBar) findViewById(R.id.loading);
 
         //网络检测
         IntentFilter intentFilter = new IntentFilter();
@@ -425,7 +435,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
         //手机串号
         //设置手机串号
-        try{
+        try {
             showTeleimei = (TextView) findViewById(R.id.show_teleimei);
             TelephonyManager telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
             showTeleimei.setText("手机串号：\n" + telephonyManager.getDeviceId());
@@ -447,6 +457,10 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 }
             }
         });
+
+        //音效
+        sp = new SoundPool(10, AudioManager.STREAM_SYSTEM, 5);//第一个参数为同时播放数据流的最大个数，第二数据流类型，第三为声音质量
+        sound = sp.load(this, R.raw.sound, 0);
 
         //阈值
         showDialog = (Button) findViewById(R.id.showDialog);
@@ -513,7 +527,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     public void onPause() {
         super.onPause();
         if (flirOneDevice != null) {
-        //flirOneDevice.stopFrameStream();
+            //flirOneDevice.stopFrameStream();
         }
     }
 
