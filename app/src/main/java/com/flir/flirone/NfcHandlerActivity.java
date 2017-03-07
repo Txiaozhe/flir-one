@@ -62,7 +62,7 @@ public class NfcHandlerActivity extends AppCompatActivity {
                 if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
                     NfcInfo nfcInfo = readFromTag(getIntent());
                     nfcResult = nfcInfo.readResult;
-                    nfcTView.setText("NFC扫描结果：" + nfcResult + "\n当前车厢号：硬卧1234");
+                    nfcTView.setText("NFC扫描结果：" + nfcResult);
                 }
             }
         }).start();

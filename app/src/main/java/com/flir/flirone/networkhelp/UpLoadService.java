@@ -96,7 +96,9 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
                 while (true) {
                     try {
                         Thread.sleep(TIME_DELAYED);
-                        startService(intent);
+
+                        Intent s = new Intent(UpLoadService.this, UpLoadService.class);
+                        startService(s);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -126,15 +128,23 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
             call.request.addProperty(GlobalConfig.PHONE_TAG, phoneId); //手机串号
             call.request.addProperty(GlobalConfig.NFC_TAG, imageInfo.getNfcCode());
             call.request.addProperty(GlobalConfig.IMAGE, image);
-            call.request.addProperty(GlobalConfig.IMAGE_NAME, imageInfo.getName());
+            call.request.addProperty(GlobalConfig.IMAGE_NAME, imageInfo.getName() + ".jpg");
             call.request.addProperty(GlobalConfig.IMAGE_TIME, imageHelp.getTimeFromName(imageInfo.getName()));
-            call.request.addProperty(GlobalConfig.MAX_TEMP, imageInfo.getMaxTemp());
+            int maxTempDot = imageInfo.getMaxTemp().indexOf(".") + 3;
+            call.request.addProperty(GlobalConfig.MAX_TEMP, imageInfo.getMaxTemp().substring(0, maxTempDot));
             call.request.addProperty(GlobalConfig.MAX_TEMP_X, imageInfo.getMaxTempX());
             call.request.addProperty(GlobalConfig.MAX_TEMP_Y, imageInfo.getMaxTempY());
-            call.request.addProperty(GlobalConfig.AVERAGE_TEMP, imageInfo.getAverTemp());
+            int averTempDot = imageInfo.getAverTemp().indexOf(".") + 3;
+            call.request.addProperty(GlobalConfig.AVERAGE_TEMP, imageInfo.getAverTemp().substring(0, averTempDot));
+            call.request.addProperty(GlobalConfig.TELELONG, "90");
+            call.request.addProperty(GlobalConfig.TELELAT, "90");
+
+            Log.i("temp", imageInfo.getMaxTemp().substring(0, maxTempDot));
+            Log.i("temp11", imageInfo.getMaxTemp());
 
             try {
                 String result = webServiceCall.callWebMethod().toString();
+                Log.i("upload", result);
                 int result_code = Integer.parseInt(result);
                 if (result_code > 0) {
                     isSuccess = true;
@@ -165,6 +175,8 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        Log.i("temp", "UpLoadService onDestroy");
     }
 
     @Override

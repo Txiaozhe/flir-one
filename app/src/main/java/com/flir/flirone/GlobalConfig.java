@@ -36,6 +36,8 @@ public class GlobalConfig {
     public static final String MAX_TEMP_X = "maxtemplocalx"; //最高温度x坐标
     public static final String MAX_TEMP_Y = "maxtemplocaly"; //最高温度y坐标
     public static final String AVERAGE_TEMP = "meantemperature"; //平均温度
+    public static final String TELELONG = "telelong";
+    public static final String TELELAT = "telelat";
 
     //数据库
     public static final String DB_NAME = "heat_images_info.db";
