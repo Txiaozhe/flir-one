@@ -8,6 +8,8 @@ import android.os.Environment;
 
 public class GlobalConfig {
 
+    public static int imgIndex;
+
     //图片保存路径
     public static final String IMAGE_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
 

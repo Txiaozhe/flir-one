@@ -267,8 +267,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final String fileName = nfc_result.substring(1) + "_" + getFileName();
-
+                    final String fileName = nfc_result.substring(1) + "_" + getFileName() + "_" + GlobalConfig.imgIndex;
                     try {
                         lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName + "@" + (float) maxTemp + "#" + maxX + "$" + maxY + "%" + (float) meantTemp + ".jpg";
                         Frame frame = renderedImage.getFrame();
@@ -314,6 +313,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             } else {
                 sp.play(sound, 1, 1, 0, 0, 1);
                 this.imageCaptureRequested = true;
+                GlobalConfig.imgIndex++;
             }
 
             setThumb();

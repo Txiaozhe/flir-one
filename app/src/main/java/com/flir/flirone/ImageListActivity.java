@@ -66,7 +66,6 @@ public class ImageListActivity extends Activity {
 
                 arrayList.add(map);
             }
-
         } catch (Exception e) {
         }
 

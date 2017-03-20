@@ -62,6 +62,7 @@ public class NfcHandlerActivity extends AppCompatActivity {
                 if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
                     NfcInfo nfcInfo = readFromTag(getIntent());
                     nfcResult = nfcInfo.readResult;
+                    GlobalConfig.imgIndex = 0;
                     nfcTView.setText("NFC扫描结果：" + nfcResult);
                 }
             }

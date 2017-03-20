@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.flir.flirone.GlobalConfig;
 import com.flir.flirone.imagehelp.ImageHelp;
@@ -64,7 +63,6 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
                         public void run() {
 
                             if (isConnected) {
-                                Log.i("connected", "connected");
                                 for (int i = 0; i < files.length; i++) {
                                     if (files[i].getName().indexOf("_UP") < 0) {
                                         byte[] bytes = imageHelp.getFileToByte(files[i]);
@@ -139,12 +137,8 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
             call.request.addProperty(GlobalConfig.TELELONG, "90");
             call.request.addProperty(GlobalConfig.TELELAT, "90");
 
-            Log.i("temp", imageInfo.getMaxTemp().substring(0, maxTempDot));
-            Log.i("temp11", imageInfo.getMaxTemp());
-
             try {
                 String result = webServiceCall.callWebMethod().toString();
-                Log.i("upload", result);
                 int result_code = Integer.parseInt(result);
                 if (result_code > 0) {
                     isSuccess = true;
@@ -175,8 +169,6 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        Log.i("upload", "UpLoadService onDestroy");
     }
 
     @Override
