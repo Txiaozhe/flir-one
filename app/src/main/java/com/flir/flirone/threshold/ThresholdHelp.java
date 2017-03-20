@@ -14,7 +14,6 @@ import com.flir.flirone.R;
  * Created by txiaozhe on 09/02/2017.
  */
 
-//需要设置阈值并保存，进入时读取保存的阈值并显示
 
 public class ThresholdHelp {
 

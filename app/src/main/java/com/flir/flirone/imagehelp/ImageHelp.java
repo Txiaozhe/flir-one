@@ -62,10 +62,8 @@ public class ImageHelp {
         Bitmap bitmap = null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        // 获取这个图片的宽和高，注意此处的bitmap为null
         bitmap = BitmapFactory.decodeFile(imagePath, options);
         options.inJustDecodeBounds = false; // 设为 false
-        // 计算缩放比
         int h = options.outHeight;
         int w = options.outWidth;
         int beWidth = w / width;
@@ -80,9 +78,7 @@ public class ImageHelp {
             be = 1;
         }
         options.inSampleSize = be;
-        // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false
         bitmap = BitmapFactory.decodeFile(imagePath, options);
-        // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象
         bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height,
                 ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
         return bitmap;
@@ -130,7 +126,6 @@ public class ImageHelp {
         return fileSizeString;
     }
 
-    //从图片名中获取图片创建时间
     public String getTimeFromName(File file) {
         String name = file.getName();
 

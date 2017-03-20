@@ -176,7 +176,7 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
     public void onDestroy() {
         super.onDestroy();
 
-        Log.i("temp", "UpLoadService onDestroy");
+        Log.i("upload", "UpLoadService onDestroy");
     }
 
     @Override

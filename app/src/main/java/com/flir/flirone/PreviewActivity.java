@@ -52,53 +52,28 @@ import java.util.EnumSet;
 public class PreviewActivity extends Activity implements Device.Delegate, FrameProcessor.Delegate, Device.StreamDelegate, ConnectivityChangeReceiver.NetworkStateInteraction {
     private ImageView thermalImageView;
     private volatile boolean imageCaptureRequested = false;
-
     private volatile Device flirOneDevice;
     private FrameProcessor frameProcessor;
-
     private String lastSavedPath;
-
-    //控制警告是否打开
     private ToggleButton warnButton;
-
-    //播放警告音
     private MediaPlayer mp, mp_strong;
-
-    //拍照音效
     private SoundPool sp;
     private int sound;
-
-    //查看图片
     private ImageButton showImage;
     private ImageHelp imageHelp;
-
-    //设置阈值
     private Button showDialog;
     ThresholdHelp thresholdHelp;
-
-    //保存图片信息
     private double maxTemp, meantTemp;
     private int maxX, maxY;
-
-    //点击屏幕获取温度
     private int width;
     private int height;
     private short[] thermalPixels;
-
-    //nfc
     private TextView showNfcResult;
     private String nfc_result;
-
-    //检测网络状态
     private TextView showNetworkState;
-
-    //手机串号
     private TextView showTeleimei;
-
-    //校准
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
 
-    //Device.Delegate接口实现的方法，设备已连接
     public void onDeviceConnected(Device device) {
         runOnUiThread(new Runnable() {
             @Override
@@ -109,10 +84,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
         flirOneDevice = device;
         flirOneDevice.startFrameStream(this);
-
     }
 
-    //Device.Delegate接口实现的方法，设备未连接
     public void onDeviceDisconnected(Device device) {
 
         runOnUiThread(new Runnable() {
@@ -133,7 +106,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     public void onTuningStateChanged(Device.TuningState tuningState) {
 
         currentTuningState = tuningState;
-        //当热成像设备正在连接
         if (tuningState == Device.TuningState.InProgress) {
             runOnUiThread(new Thread() {
                 @Override
@@ -148,7 +120,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                 }
             });
         } else {
-            //连接成功
             runOnUiThread(new Thread() {
                 @Override
                 public void run() {
@@ -166,7 +137,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     }
 
-    //显示更新热成像视图
     private void updateThermalImageView(final Bitmap frame) {
         runOnUiThread(new Runnable() {
             @Override
@@ -176,7 +146,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         });
     }
 
-    //Device.StreamDelegate实现的方法，处理视图
     public void onFrameReceived(Frame frame) {
 
         if (currentTuningState != Device.TuningState.InProgress) {
@@ -186,18 +155,15 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     private Bitmap thermalBitmap = null;
 
-    //FrameProcessor.Delegate接口实现的方法，的获取温度，视图处理器授权方法，将访问每次的frame的产生，实时进行扫描
     public void onFrameProcessed(final RenderedImage renderedImage) {
 
         if (renderedImage.imageType() == RenderedImage.ImageType.ThermalRadiometricKelvinImage) {
             // Note: this code is not optimized
 
-            thermalPixels = renderedImage.thermalPixelData(); //thermalPixels[76800]
-            //每次扫描都会产生这样的一串数组
+            thermalPixels = renderedImage.thermalPixelData();
 
-            // 计算中心周围9个像素的平均值
             width = renderedImage.width();
-            height = renderedImage.height();  //width * height = 76800
+            height = renderedImage.height();
             int centerPixelIndex = width * (height / 2) + (width / 2);
             int[] centerPixelIndexes = new int[]{
                     centerPixelIndex, centerPixelIndex - 1, centerPixelIndex + 1,
@@ -209,7 +175,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     centerPixelIndex + width + 1
             };
 
-            //扫描全屏温度并进行高温预警
             new Thread(new Runnable() {
                 short[] thermalPixels = renderedImage.thermalPixelData();
                 int width = renderedImage.width();
@@ -250,7 +215,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }).start();
             //////
 
-            double averageTemp = 0; //平均温度，单位K
+            double averageTemp = 0;
 
             for (int i = 0; i < centerPixelIndexes.length; i++) {  //centerPixelIndexes.length = 9
                 // Remember: all primitives are signed, we want the unsigned value,
@@ -263,7 +228,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             NumberFormat numberFormat = NumberFormat.getInstance();
             numberFormat.setMaximumFractionDigits(2);
             numberFormat.setMinimumFractionDigits(2);
-            //显示温度
             final String spotMeterValue = numberFormat.format(averageC) + "ºC";
 
             runOnUiThread(new Runnable() {
@@ -297,7 +261,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             updateThermalImageView(thermalBitmap);
         }
 
-        //捕获图像
         if (this.imageCaptureRequested) {
             imageCaptureRequested = false;
             final Context context = this;
@@ -334,8 +297,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         }
 
     }
-
-    //捕获图像单击事件
     public void onCaptureImageClicked(View v) {
 
         if (flirOneDevice == null && lastSavedPath != null) {
@@ -372,7 +333,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         }
     }
 
-    //获取文件名
     private String getFileName() {
         Date date = new Date();
         DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -381,7 +341,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         return fileName;
     }
 
-    //热成像主界面
     @Override
     protected void onStart() {
         super.onStart();
@@ -405,7 +364,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
 
     ScaleGestureDetector mScaleDetector;
 
-    //开机提示
     private ProgressBar loading;
     private ImageView spotMeterIcon;
 
@@ -415,15 +373,12 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_preview);
 
-        //启动上传服务
         Intent serviceIntent = new Intent(PreviewActivity.this, UpLoadService.class);
         startService(serviceIntent);
 
-        //显示开机提示
         spotMeterIcon = (ImageView) findViewById(R.id.spotMeterIcon);
         loading = (ProgressBar) findViewById(R.id.loading);
 
-        //网络检测
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         ConnectivityChangeReceiver receiver = new ConnectivityChangeReceiver();
@@ -433,8 +388,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         //网络状态
         showNetworkState = (TextView) findViewById(R.id.show_network_state);
 
-        //手机串号
-        //设置手机串号
         try {
             showTeleimei = (TextView) findViewById(R.id.show_teleimei);
             TelephonyManager telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
@@ -458,11 +411,9 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         });
 
-        //音效
         sp = new SoundPool(10, AudioManager.STREAM_SYSTEM, 5);//第一个参数为同时播放数据流的最大个数，第二数据流类型，第三为声音质量
         sound = sp.load(this, R.raw.sound, 0);
 
-        //阈值
         showDialog = (Button) findViewById(R.id.showDialog);
         thresholdHelp = new ThresholdHelp(PreviewActivity.this, showDialog);
         thresholdHelp.setThreshold();
@@ -473,7 +424,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         });
 
-        //设置默认滤镜
         RenderedImage.ImageType defaultImageType = RenderedImage.ImageType.BlendedMSXRGBA8888Image;
         frameProcessor = new FrameProcessor(this, this, EnumSet.of(defaultImageType, RenderedImage.ImageType.ThermalRadiometricKelvinImage));
 
@@ -494,15 +444,12 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         });
 
-        //查看所有图片按钮设置缩略图
         showImage = (ImageButton) findViewById(R.id.showImage);
         imageHelp = new ImageHelp(GlobalConfig.IMAGE_PATH);
         setThumb();
 
-        //检查所有图片的时间
         imageHelp.checkAllImagesDate();
 
-        //点击查看所有图片按钮进入图片展示页面
         showImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -511,7 +458,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             }
         });
 
-        //获取nfc 数据
         showNfcResult = (TextView) findViewById(R.id.show_nfc_result);
         if (getIntent() != null) {
             nfc_result = getIntent().getStringExtra("nfcresult");
@@ -553,7 +499,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         super.onDestroy();
     }
 
-    //网络状态改变时设置提示文字
     @Override
     public void setNetworkState(String state) {
         if (state != null) {

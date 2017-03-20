@@ -33,7 +33,6 @@ public class MyImage {
         this.isUpLoad = isUpLoad;
     }
 
-    //用于保存到数据库
     public MyImage(String isUpLoad, String teleimei, String barcode, String path, String imagename, String imagetime, String maxtemperature, String maxtemplocalx, String maxtemplocaly, String meantemperature) {
         this.isUpLoad = isUpLoad;
         this.teleimei = teleimei;
@@ -47,7 +46,6 @@ public class MyImage {
         this.meantemperature = meantemperature;
     }
 
-    //用于上传图片
     public MyImage(String isUpLoad, String teleimei, String barcode, Bitmap heatimage, String imagename, String imagetime, String maxtemperature, String maxtemplocalx, String maxtemplocaly, String meantemperature) {
         this.isUpLoad = isUpLoad;
         this.teleimei = teleimei;
@@ -61,7 +59,6 @@ public class MyImage {
         this.meantemperature = meantemperature;
     }
 
-    //包含所有属性
     public MyImage(String teleimei, String barcode, Bitmap heatimage, String imagename, String path, String type, String size, String imagetime, String maxtemperature, String maxtemplocalx, String maxtemplocaly, String meantemperature) {
         this.teleimei = teleimei;
         this.barcode = barcode;

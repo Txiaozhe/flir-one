@@ -27,7 +27,6 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
                 networkStateInteraction.setNetworkState(GlobalConfig.WIFI_CONNECTED);
             }
 
-            //启动上传服务
             try {
                 Intent serviceIntent = new Intent(context, UpLoadService.class);
                 context.startService(serviceIntent);
