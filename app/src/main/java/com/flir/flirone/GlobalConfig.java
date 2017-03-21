@@ -40,6 +40,7 @@ public class GlobalConfig {
     public static final String AVERAGE_TEMP = "meantemperature"; //平均温度
     public static final String TELELONG = "telelong";
     public static final String TELELAT = "telelat";
+    public static final String IMAGE_INDEX = "photocount";
 
     //数据库
     public static final String DB_NAME = "heat_images_info.db";

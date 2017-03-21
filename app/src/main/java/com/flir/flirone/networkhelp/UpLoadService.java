@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.flir.flirone.GlobalConfig;
 import com.flir.flirone.imagehelp.ImageHelp;
@@ -18,7 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-public class UpLoadService extends Service implements ConnectivityChangeReceiver.NetworkStateInteraction{
+public class UpLoadService extends Service implements ConnectivityChangeReceiver.NetworkStateInteraction {
     public static Integer mInprogressLock = new Integer(10000);
     private static boolean mIsInprogress = false;
 
@@ -52,7 +53,6 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
             synchronized (mInprogressLock) {
                 if (!mIsInprogress) {
                     UpLoadService.setUploadInProgress(true);
-
                     new Thread(new Runnable() {
                         //获取手机串号
                         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -61,20 +61,21 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
 
                         @Override
                         public void run() {
-
                             if (isConnected) {
                                 for (int i = 0; i < files.length; i++) {
                                     if (files[i].getName().indexOf("_UP") < 0) {
                                         byte[] bytes = imageHelp.getFileToByte(files[i]);
-                                        boolean isSuccess = false;
                                         try {
-                                            isSuccess = request(webServiceCall, imageHelp, imageHelp.getInfoFromName(files[i].getName()), telephonyManager.getDeviceId(), new String(bytes, "UTF-8"));
+                                            if (request(webServiceCall, imageHelp, imageHelp.getInfoFromName(files[i].getName()), telephonyManager.getDeviceId(), new String(bytes, "UTF-8"))) { //实际中是isSuccess
+                                                imageHelp.renameImage(files[i]);
+                                            }
                                         } catch (UnsupportedEncodingException e) {
                                             e.printStackTrace();
                                         }
-                                        if (isSuccess) { //实际中是isSuccess
-                                            imageHelp.renameImage(files[i]);
-                                        }
+                                    }
+                                    try {
+                                        Thread.sleep(3 * 1000);
+                                    } catch (InterruptedException ignored) {
                                     }
                                 }
                             }
@@ -91,16 +92,16 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
             thread_create = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                while (true) {
-                    try {
-                        Thread.sleep(TIME_DELAYED);
+                    while (true) {
+                        try {
+                            Thread.sleep(TIME_DELAYED);
 
-                        Intent s = new Intent(UpLoadService.this, UpLoadService.class);
-                        startService(s);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                            Intent s = new Intent(UpLoadService.this, UpLoadService.class);
+                            startService(s);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
                 }
             });
             thread_create.start();
@@ -119,9 +120,8 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
         receiver.setNetWorkStateChangeListener(this);
     }
 
-    boolean isSuccess;
-
     private boolean request(WebServiceCall call, ImageHelp imageHelp, ImageInfo imageInfo, String phoneId, String image) {
+        boolean isSuccess = false;
         if (imageInfo.getName().indexOf("_UP") < 0) {
             call.request.addProperty(GlobalConfig.PHONE_TAG, phoneId); //手机串号
             call.request.addProperty(GlobalConfig.NFC_TAG, imageInfo.getNfcCode());
@@ -137,24 +137,29 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
             call.request.addProperty(GlobalConfig.TELELONG, "90");
             call.request.addProperty(GlobalConfig.TELELAT, "90");
 
+            String photocount = imageInfo.getName().substring(imageInfo.getName().length() - 1, imageInfo.getName().length());
+            Log.i("imageindexname", imageInfo.getName());
+            call.request.addProperty(GlobalConfig.IMAGE_INDEX, photocount);
+
             try {
-                String result = webServiceCall.callWebMethod().toString();
+                String result = call.callWebMethod().toString();
                 int result_code = Integer.parseInt(result);
+                Log.i("imageindexresult", result);
                 if (result_code > 0) {
                     isSuccess = true;
                 } else {
                     isSuccess = false;
                     switch (result_code) {
                         case -1: {
-
+                            Log.i("imageerr", result_code + "");
                             break;
                         }
                         case -2: {
-
+                            Log.i("imageerr", result_code + "");
                             break;
                         }
                         case -9: {
-
+                            Log.i("imageerr", result_code + "");
                             break;
                         }
                     }
