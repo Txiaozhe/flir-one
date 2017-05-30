@@ -20,7 +20,7 @@ public class GlobalConfig {
 
     //网络服务
     public static final String SERVER_IP = "211.143.78.218:7044";
-    public static final int NET_TIMEOUT_MS = 6000;
+    public static final int NET_TIMEOUT_MS = 60000;
     public static final String NAMESPACE = "http://tempuri.org/";
     public static final String WEBSERVICE_URL = "http://211.143.78.218:7044//pcj_cloudtrain_ws//Service1.asmx";
     public static final String METHOD_NAME = "ReceiveHeatImageInfoWithGPS";

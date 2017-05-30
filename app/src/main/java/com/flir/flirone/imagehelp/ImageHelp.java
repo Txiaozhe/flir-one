@@ -197,14 +197,16 @@ public class ImageHelp {
         return info;
     }
 
-    public void renameImage(File file) {
+    public String renameImage(File file) {
+        String newPath = "";
         if (file.getName().indexOf("_UP") < 0) {
             File oldFile = new File(file.getPath());
             String oldPath = file.getPath();
             int index1 = oldPath.indexOf("@");
-            String newPath = oldPath.substring(0, index1) + "_UP@" + oldPath.substring(index1 + 1);
+            newPath = oldPath.substring(0, index1) + "_UP@" + oldPath.substring(index1 + 1);
             oldFile.renameTo(new File(newPath));
         }
+        return newPath;
     }
 
     public boolean deleteFile(String path) {

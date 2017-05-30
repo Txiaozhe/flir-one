@@ -74,6 +74,8 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
     private TextView showTeleimei;
     private Device.TuningState currentTuningState = Device.TuningState.Unknown;
 
+    private ImageButton imageButton;
+
     public void onDeviceConnected(Device device) {
         runOnUiThread(new Runnable() {
             @Override
@@ -116,6 +118,7 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
                     findViewById(R.id.tuningTextView).setVisibility(View.VISIBLE);
 
                     loading.setVisibility(View.GONE);
+                    imageButton.setEnabled(true);
                     spotMeterIcon.setVisibility(View.VISIBLE);
                 }
             });
@@ -267,26 +270,19 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final String fileName = nfc_result.substring(1) + "_" + getFileName() + "_" + GlobalConfig.imgIndex;
+
                     try {
-                        lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName + "@" + (float) maxTemp + "#" + maxX + "$" + maxY + "%" + (float) meantTemp + ".jpg";
                         Frame frame = renderedImage.getFrame();
                         if (frame != null) {
+                            GlobalConfig.imgIndex++;
+                            final String fileName = nfc_result.substring(1) + "_" + getFileName() + "_" + GlobalConfig.imgIndex;
+                            lastSavedPath = GlobalConfig.IMAGE_PATH + "/" + fileName + "@" + (float) maxTemp + "#" + maxX + "$" + maxY + "%" + (float) meantTemp + ".jpg";
                             frame.save(new File(lastSavedPath), RenderedImage.Palette.Iron, RenderedImage.ImageType.BlendedMSXRGBA8888Image);
                         } else {
                             Toast.makeText(PreviewActivity.this, "图片获取失败", Toast.LENGTH_SHORT).show();
                         }
 
                         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(GlobalConfig.IMAGE_PATH)));
-
-                        MediaScannerConnection.scanFile(context,
-                                new String[]{GlobalConfig.IMAGE_PATH + "/" + fileName}, null,
-                                new MediaScannerConnection.OnScanCompletedListener() {
-                                    @Override
-                                    public void onScanCompleted(String path, Uri uri) {
-                                    }
-
-                                });
                     } catch (Exception e) {
 
                     }
@@ -313,7 +309,6 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
             } else {
                 sp.play(sound, 1, 1, 0, 0, 1);
                 this.imageCaptureRequested = true;
-                GlobalConfig.imgIndex++;
             }
 
             setThumb();
@@ -395,6 +390,10 @@ public class PreviewActivity extends Activity implements Device.Delegate, FrameP
         } catch (Exception e) {
             Toast.makeText(PreviewActivity.this, "权限错误", Toast.LENGTH_SHORT).show();
         }
+
+        //拍照按钮
+        imageButton = (ImageButton) findViewById(R.id.imageButton);
+        imageButton.setEnabled(false);
 
         //是否开启警报
         warnButton = (ToggleButton) findViewById(R.id.warnButton);

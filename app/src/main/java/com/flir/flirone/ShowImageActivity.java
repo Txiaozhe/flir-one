@@ -44,7 +44,7 @@ public class ShowImageActivity extends Activity {
         showImageSize.setText(imageHelp.getFileOrFilesSize(file));
         showImageTime.setText(imageHelp.getTimeFromName(info.getName()));
 
-        int dot = info.getAverTemp().indexOf(".") + 3;
+        int dot = info.getAverTemp().indexOf(".") + 2;
 
         showTemp.setText("最高温度：" + info.getMaxTemp() + "℃  平均温度：" + info.getAverTemp().substring(0, dot) + "℃");
         showCoordinate.setText("最高温度坐标： (" + info.getMaxTempX() + "，" + info.getMaxTempY() + ")");

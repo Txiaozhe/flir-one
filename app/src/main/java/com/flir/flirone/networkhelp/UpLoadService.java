@@ -24,7 +24,7 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
     private static boolean mIsInprogress = false;
 
     WebServiceCall webServiceCall;
-    final int TIME_DELAYED = 1000 * 60 * 10; //每10分钟重启一次服务
+    final int TIME_DELAYED = 30 * 1000;//1000 * 60 * 10; //每10分钟重启一次服务
 
     private Thread thread_create;
     private Context context = this;
@@ -61,13 +61,19 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
 
                         @Override
                         public void run() {
-                            if (isConnected) {
+                            if (isConnected & files != null) {
                                 for (int i = 0; i < files.length; i++) {
-                                    if (files[i].getName().indexOf("_UP") < 0) {
+                                    String fileName = files[i].getName();
+
+                                    Log.i("imageindex:", i + "  " + fileName);
+
+                                    if (fileName.indexOf("_UP") < 0) {
                                         byte[] bytes = imageHelp.getFileToByte(files[i]);
                                         try {
-                                            if (request(webServiceCall, imageHelp, imageHelp.getInfoFromName(files[i].getName()), telephonyManager.getDeviceId(), new String(bytes, "UTF-8"))) { //实际中是isSuccess
-                                                imageHelp.renameImage(files[i]);
+                                            boolean isUp = request(webServiceCall, imageHelp, imageHelp.getInfoFromName(fileName), telephonyManager.getDeviceId(), new String(bytes, "UTF-8"));
+                                            if (isUp) { //实际中是isSuccess
+                                                String newName = imageHelp.renameImage(files[i]);
+                                                Log.i("imageindexsuccess", i + "  " + isUp + "  " + fileName + "  newName:" + newName);
                                             }
                                         } catch (UnsupportedEncodingException e) {
                                             e.printStackTrace();
@@ -125,14 +131,14 @@ public class UpLoadService extends Service implements ConnectivityChangeReceiver
         if (imageInfo.getName().indexOf("_UP") < 0) {
             call.request.addProperty(GlobalConfig.PHONE_TAG, phoneId); //手机串号
             call.request.addProperty(GlobalConfig.NFC_TAG, imageInfo.getNfcCode());
-            call.request.addProperty(GlobalConfig.IMAGE, image);
+            call.request.addProperty(GlobalConfig.IMAGE, "image");
             call.request.addProperty(GlobalConfig.IMAGE_NAME, imageInfo.getName() + ".jpg");
             call.request.addProperty(GlobalConfig.IMAGE_TIME, imageHelp.getTimeFromName(imageInfo.getName()));
-            int maxTempDot = imageInfo.getMaxTemp().indexOf(".") + 3;
+            int maxTempDot = imageInfo.getMaxTemp().indexOf(".") + 2;
             call.request.addProperty(GlobalConfig.MAX_TEMP, imageInfo.getMaxTemp().substring(0, maxTempDot));
             call.request.addProperty(GlobalConfig.MAX_TEMP_X, imageInfo.getMaxTempX());
             call.request.addProperty(GlobalConfig.MAX_TEMP_Y, imageInfo.getMaxTempY());
-            int averTempDot = imageInfo.getAverTemp().indexOf(".") + 3;
+            int averTempDot = imageInfo.getAverTemp().indexOf(".") + 2;
             call.request.addProperty(GlobalConfig.AVERAGE_TEMP, imageInfo.getAverTemp().substring(0, averTempDot));
             call.request.addProperty(GlobalConfig.TELELONG, "90");
             call.request.addProperty(GlobalConfig.TELELAT, "90");
